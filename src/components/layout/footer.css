@@ -1,0 +1,28 @@
+/* .footer {
+    padding-left: 30px;
+    width: 100%;
+    text-align: center;
+    padding: 14px 0;
+    background: #282c34;
+    color: #fff;
+    font-size: 14px;
+    box-shadow: 0 -2px 6px rgba(0, 0, 0, 0.15);
+    position: fixed;
+    left: 0;
+    bottom: 0;
+    z-index: 100;
+
+    transform: translateY(100%);
+    opacity: 0;
+    transition: all 0.4s ease;
+}
+
+.footer.visible {
+    transform: translateY(0);
+    opacity: 1;
+}
+
+body {
+    padding-bottom: 60px;
+    margin: 0;
+} */

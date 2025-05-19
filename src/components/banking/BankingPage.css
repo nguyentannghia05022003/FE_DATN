@@ -1,0 +1,39 @@
+/* src/components/banking/BankingPage.css */
+.banking-page-container {
+    padding: 20px;
+}
+
+.banking-page-container h2 {
+    font-size: 20px;
+    color: #1d39c4;
+    font-weight: bold;
+    margin-bottom: 16px;
+}
+
+.amount-positive {
+    color: green;
+}
+
+.amount-negative {
+    color: red;
+}
+
+.amount-neutral {
+    color: gray;
+}
+
+.table-row-light {
+    background-color: #ffffff !important;
+}
+
+.table-row-dark {
+    background-color: #fafafa !important;
+}
+
+.revenue-modal {
+    font-size: 16px;
+}
+
+.revenue-modal p {
+    margin: 10px 0;
+}

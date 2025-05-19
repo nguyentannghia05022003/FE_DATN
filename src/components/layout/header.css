@@ -1,0 +1,52 @@
+/* Thanh header ngang phía trên */
+.top-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 24px;
+    background: #fff;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+
+.header-left h3 {
+    margin: 0;
+    font-size: 16px;
+}
+
+.header-right {
+    display: flex;
+    align-items: center;
+}
+
+.user-info {
+    display: flex;
+    align-items: center;
+}
+
+/* Chế độ sáng/tối */
+.light-mode {
+    background: #f0f2f5;
+}
+
+.dark-mode {
+    background: #1f1f1f;
+}
+
+.dark-mode .ant-layout-sider {
+    background: #333 !important;
+}
+
+.dark-mode .ant-menu-dark {
+    background: #333 !important;
+}
+
+.dark-mode .ant-menu-item {
+    color: #fff !important;
+}
+
+.dark-mode .ant-menu-item-selected {
+    background: #555 !important;
+}
