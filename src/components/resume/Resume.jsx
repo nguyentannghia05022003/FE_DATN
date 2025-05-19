@@ -6,6 +6,7 @@ import "./Resume.css";
 
 const Resume = ({
     resumes,
+    fullResumes,
     loading,
     currentPage,
     pageSize,
@@ -14,59 +15,86 @@ const Resume = ({
     onPageSizeChange,
     onCreateResume,
     onDeleteResume,
+    onRefresh,
 }) => {
     const [isModalVisible, setIsModalVisible] = useState(false);
     const [expandedRows, setExpandedRows] = useState({});
     const [sortOrder, setSortOrder] = useState({ field: null, order: null });
-    const [sortedResumes, setSortedResumes] = useState([...resumes]);
-    const [originalResumes, setOriginalResumes] = useState([...resumes]);
+    const [sortedResumes, setSortedResumes] = useState([]);
+    const [filteredResumes, setFilteredResumes] = useState([]); // Dữ liệu sau khi lọc ngày
     const [selectedDate, setSelectedDate] = useState(null);
-    const [totalIncome, setTotalIncome] = useState(0); // State để lưu tổng thu nhập
+    const [totalIncome, setTotalIncome] = useState(0);
     const [form] = Form.useForm();
 
-    // Cập nhật sortedResumes, originalResumes và tổng thu nhập khi resumes thay đổi
+    // Cập nhật sortedResumes khi resumes thay đổi (dữ liệu phân trang)
     useEffect(() => {
-        setSortedResumes([...resumes]);
-        setOriginalResumes([...resumes]);
-        calculateTotalIncome([...resumes]); // Tính tổng thu nhập ban đầu
-    }, [resumes]);
+        const resumeList = Array.isArray(resumes) ? resumes : [];
+        console.log("Resumes (paginated) received:", resumeList);
+        if (!selectedDate && !sortOrder.field) {
+            setSortedResumes(resumeList);
+        }
+    }, [resumes, selectedDate, sortOrder]);
 
-    // Tính tổng thu nhập mỗi khi sortedResumes thay đổi
+    // Cập nhật filteredResumes và tổng thu nhập khi fullResumes thay đổi
     useEffect(() => {
-        calculateTotalIncome(sortedResumes);
-    }, [sortedResumes]);
+        const fullResumeList = Array.isArray(fullResumes) ? fullResumes : [];
+        console.log("Full resumes received:", fullResumeList);
+        setFilteredResumes(fullResumeList);
+        calculateTotalIncome(fullResumeList);
+    }, [fullResumes]);
 
-    // Hàm tính tổng thu nhập
+    // Tính tổng thu nhập
     const calculateTotalIncome = (resumesList) => {
         const total = resumesList.reduce((sum, resume) => sum + (resume.totalPrice || 0), 0);
         setTotalIncome(total);
     };
 
-    // Lọc resume theo ngày được chọn
+    // Lọc resume theo ngày được chọn trên toàn bộ dữ liệu
     useEffect(() => {
+        let resumeList = Array.isArray(fullResumes) ? [...fullResumes] : [];
         if (selectedDate) {
             const selected = moment(selectedDate).startOf("day");
             console.log("Selected Date:", selected.format("DD/MM/YYYY HH:mm:ss"));
             console.log("Selected Date Raw:", selectedDate);
 
-            const filtered = originalResumes.filter((resume) => {
+            resumeList = resumeList.filter((resume) => {
                 const resumeDate = moment(resume.createdAt).startOf("day");
                 console.log("Resume Date:", resumeDate.format("DD/MM/YYYY HH:mm:ss"), "Resume ID:", resume._id);
                 console.log("Resume CreatedAt Raw:", resume.createdAt);
                 return resumeDate.isSame(selected, "day");
             });
 
-            if (filtered.length === 0) {
+            if (resumeList.length === 0) {
                 notification.warning({
                     message: "Không tìm thấy",
                     description: `Không có resume nào được tạo vào ngày ${moment(selectedDate).format("DD/MM/YYYY")}.`,
                 });
             }
-            setSortedResumes(filtered);
-        } else {
-            setSortedResumes([...originalResumes]);
         }
-    }, [selectedDate, originalResumes]);
+
+        setFilteredResumes(resumeList);
+        calculateTotalIncome(resumeList);
+
+        // Áp dụng sắp xếp nếu có
+        if (sortOrder.field) {
+            resumeList = resumeList.sort((a, b) => {
+                if (sortOrder.field === "createdAt") {
+                    const dateA = new Date(a.createdAt).getTime();
+                    const dateB = new Date(b.createdAt).getTime();
+                    return sortOrder.order === "asc" ? dateA - dateB : dateB - dateA;
+                } else if (sortOrder.field === "totalPrice") {
+                    return sortOrder.order === "asc" ? a.totalPrice - b.totalPrice : b.totalPrice - a.totalPrice;
+                }
+                return 0;
+            });
+        }
+
+        // Cập nhật sortedResumes với dữ liệu phân trang
+        const startIndex = (currentPage - 1) * pageSize;
+        const endIndex = startIndex + pageSize;
+        const paginatedList = resumeList.slice(startIndex, endIndex);
+        setSortedResumes(paginatedList);
+    }, [selectedDate, fullResumes, sortOrder, currentPage, pageSize]);
 
     const itemColumns = [
         {
@@ -105,34 +133,20 @@ const Resume = ({
         }));
     };
 
-    // Hàm sắp xếp
     const handleSort = (field) => {
         const newOrder = sortOrder.field === field && sortOrder.order === "asc" ? "desc" : "asc";
         setSortOrder({ field, order: newOrder });
-
-        const sorted = [...sortedResumes].sort((a, b) => {
-            if (field === "createdAt") {
-                const dateA = new Date(a.createdAt).getTime();
-                const dateB = new Date(b.createdAt).getTime();
-                return newOrder === "asc" ? dateA - dateB : dateB - dateA;
-            } else if (field === "totalPrice") {
-                return newOrder === "asc" ? a.totalPrice - b.totalPrice : b.totalPrice - a.totalPrice;
-            }
-            return 0;
-        });
-
-        setSortedResumes(sorted);
     };
 
-    // Hàm làm mới
     const handleRefresh = () => {
-        setSortedResumes([...originalResumes]);
+        if (onRefresh) {
+            onRefresh();
+        }
         setSortOrder({ field: null, order: null });
         setExpandedRows({});
         setSelectedDate(null);
     };
 
-    // Hàm xử lý chọn ngày
     const handleDateChange = (date, dateString) => {
         if (date) {
             const localDate = moment(dateString, "DD/MM/YYYY").startOf("day");
@@ -170,7 +184,7 @@ const Resume = ({
                     {expandedRows[record._id] && (
                         <Table
                             columns={itemColumns}
-                            dataSource={record.items}
+                            dataSource={record.items || []}
                             rowKey="_id"
                             pagination={false}
                             className="resume-sub-table"
@@ -183,7 +197,7 @@ const Resume = ({
             title: "Tổng giá",
             dataIndex: "totalPrice",
             key: "totalPrice",
-            render: (totalPrice) => `${totalPrice.toLocaleString("vi-VN")} VNĐ`,
+            render: (totalPrice) => `${totalPrice?.toLocaleString("vi-VN") || 0} VNĐ`,
         },
         {
             title: "Ngày tạo",
@@ -311,7 +325,7 @@ const Resume = ({
             <Pagination
                 current={currentPage}
                 pageSize={pageSize}
-                total={totalResumes}
+                total={selectedDate ? filteredResumes.length : totalResumes}
                 onChange={onPageChange}
                 onShowSizeChange={onPageSizeChange}
                 showSizeChanger
