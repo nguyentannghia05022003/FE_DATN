@@ -22,6 +22,9 @@ import ChangePassword from './pages/change-password.jsx';
 import Setting from './pages/setting.jsx';
 import PersonalInformation from './pages/personal-information.jsx';
 import ResumePage from './pages/ResumePage.jsx';
+import dayjs from 'dayjs';
+import weekOfYear from 'dayjs/plugin/weekOfYear';
+import isBetween from 'dayjs/plugin/isBetween';
 
 const router = createBrowserRouter([
   {
@@ -115,6 +118,9 @@ const router = createBrowserRouter([
     element: <ForgotPassword />
   },
 ]);
+
+dayjs.extend(weekOfYear);
+dayjs.extend(isBetween);
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   // <React.StrictMode>

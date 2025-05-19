@@ -1,8 +1,30 @@
 import React, { useState, useEffect } from "react";
-import { Table, Button, Modal, Form, Input, InputNumber, notification, Space, Pagination, DatePicker } from "antd";
-import { DeleteOutlined, PlusOutlined, EyeOutlined, SortAscendingOutlined, SortDescendingOutlined, ReloadOutlined } from "@ant-design/icons";
-import moment from "moment";
+import {
+    Table,
+    Button,
+    Modal,
+    Form,
+    Input,
+    InputNumber,
+    notification,
+    Space,
+    Pagination,
+    DatePicker,
+    Select,
+} from "antd";
+import {
+    DeleteOutlined,
+    PlusOutlined,
+    EyeOutlined,
+    SortAscendingOutlined,
+    SortDescendingOutlined,
+    ReloadOutlined,
+} from "@ant-design/icons";
+import dayjs from "dayjs";
+import weekOfYear from "dayjs/plugin/weekOfYear"; // Correct plugin import
 import "./Resume.css";
+
+dayjs.extend(weekOfYear);
 
 const Resume = ({
     resumes,
@@ -21,12 +43,12 @@ const Resume = ({
     const [expandedRows, setExpandedRows] = useState({});
     const [sortOrder, setSortOrder] = useState({ field: null, order: null });
     const [sortedResumes, setSortedResumes] = useState([]);
-    const [filteredResumes, setFilteredResumes] = useState([]); // Dữ liệu sau khi lọc ngày
+    const [filteredResumes, setFilteredResumes] = useState([]);
     const [selectedDate, setSelectedDate] = useState(null);
     const [totalIncome, setTotalIncome] = useState(0);
+    const [pickerMode, setPickerMode] = useState("date");
     const [form] = Form.useForm();
 
-    // Cập nhật sortedResumes khi resumes thay đổi (dữ liệu phân trang)
     useEffect(() => {
         const resumeList = Array.isArray(resumes) ? resumes : [];
         console.log("Resumes (paginated) received:", resumeList);
@@ -35,7 +57,6 @@ const Resume = ({
         }
     }, [resumes, selectedDate, sortOrder]);
 
-    // Cập nhật filteredResumes và tổng thu nhập khi fullResumes thay đổi
     useEffect(() => {
         const fullResumeList = Array.isArray(fullResumes) ? fullResumes : [];
         console.log("Full resumes received:", fullResumeList);
@@ -43,31 +64,50 @@ const Resume = ({
         calculateTotalIncome(fullResumeList);
     }, [fullResumes]);
 
-    // Tính tổng thu nhập
-    const calculateTotalIncome = (resumesList) => {
-        const total = resumesList.reduce((sum, resume) => sum + (resume.totalPrice || 0), 0);
-        setTotalIncome(total);
-    };
-
-    // Lọc resume theo ngày được chọn trên toàn bộ dữ liệu
     useEffect(() => {
         let resumeList = Array.isArray(fullResumes) ? [...fullResumes] : [];
         if (selectedDate) {
-            const selected = moment(selectedDate).startOf("day");
-            console.log("Selected Date:", selected.format("DD/MM/YYYY HH:mm:ss"));
-            console.log("Selected Date Raw:", selectedDate);
+            console.log("Picker Mode:", pickerMode);
+            console.log("Selected Date:", selectedDate.format("DD/MM/YYYY HH:mm:ss"));
 
             resumeList = resumeList.filter((resume) => {
-                const resumeDate = moment(resume.createdAt).startOf("day");
-                console.log("Resume Date:", resumeDate.format("DD/MM/YYYY HH:mm:ss"), "Resume ID:", resume._id);
-                console.log("Resume CreatedAt Raw:", resume.createdAt);
-                return resumeDate.isSame(selected, "day");
+                const resumeDate = dayjs(resume.createdAt);
+                let isMatch = false;
+
+                if (pickerMode === "date") {
+                    isMatch = resumeDate.startOf("day").isSame(selectedDate.startOf("day"), "day");
+                } else if (pickerMode === "week") {
+                    isMatch = resumeDate.isBetween(
+                        selectedDate.startOf("week"),
+                        selectedDate.endOf("week"),
+                        null,
+                        "[]"
+                    );
+                } else if (pickerMode === "month") {
+                    isMatch = resumeDate.startOf("month").isSame(selectedDate.startOf("month"), "month");
+                } else if (pickerMode === "year") {
+                    isMatch = resumeDate.startOf("year").isSame(selectedDate.startOf("year"), "year");
+                }
+
+                console.log(
+                    `Resume ID: ${resume._id}, Resume Date: ${resumeDate.format(
+                        "DD/MM/YYYY HH:mm:ss"
+                    )}, Match: ${isMatch}`
+                );
+                return isMatch;
             });
 
             if (resumeList.length === 0) {
                 notification.warning({
                     message: "Không tìm thấy",
-                    description: `Không có resume nào được tạo vào ngày ${moment(selectedDate).format("DD/MM/YYYY")}.`,
+                    description: `Không có resume nào trong ${pickerMode === "date"
+                            ? "ngày"
+                            : pickerMode === "week"
+                                ? "tuần"
+                                : pickerMode === "month"
+                                    ? "tháng"
+                                    : "năm"
+                        } đã chọn.`,
                 });
             }
         }
@@ -75,7 +115,6 @@ const Resume = ({
         setFilteredResumes(resumeList);
         calculateTotalIncome(resumeList);
 
-        // Áp dụng sắp xếp nếu có
         if (sortOrder.field) {
             resumeList = resumeList.sort((a, b) => {
                 if (sortOrder.field === "createdAt") {
@@ -89,29 +128,21 @@ const Resume = ({
             });
         }
 
-        // Cập nhật sortedResumes với dữ liệu phân trang
         const startIndex = (currentPage - 1) * pageSize;
         const endIndex = startIndex + pageSize;
         const paginatedList = resumeList.slice(startIndex, endIndex);
         setSortedResumes(paginatedList);
-    }, [selectedDate, fullResumes, sortOrder, currentPage, pageSize]);
+    }, [selectedDate, fullResumes, sortOrder, currentPage, pageSize, pickerMode]);
+
+    const calculateTotalIncome = (resumesList) => {
+        const total = resumesList.reduce((sum, resume) => sum + (resume.totalPrice || 0), 0);
+        setTotalIncome(total);
+    };
 
     const itemColumns = [
-        {
-            title: "Mã sản phẩm",
-            dataIndex: "barCode",
-            key: "barCode",
-        },
-        {
-            title: "Tên sản phẩm",
-            dataIndex: "name",
-            key: "name",
-        },
-        {
-            title: "Số lượng",
-            dataIndex: "quantityPurchased",
-            key: "quantityPurchased",
-        },
+        { title: "Mã sản phẩm", dataIndex: "barCode", key: "barCode" },
+        { title: "Tên sản phẩm", dataIndex: "name", key: "name" },
+        { title: "Số lượng", dataIndex: "quantityPurchased", key: "quantityPurchased" },
         {
             title: "Giá",
             dataIndex: "price",
@@ -127,10 +158,7 @@ const Resume = ({
     ];
 
     const toggleRow = (id) => {
-        setExpandedRows((prev) => ({
-            ...prev,
-            [id]: !prev[id],
-        }));
+        setExpandedRows((prev) => ({ ...prev, [id]: !prev[id] }));
     };
 
     const handleSort = (field) => {
@@ -145,13 +173,28 @@ const Resume = ({
         setSortOrder({ field: null, order: null });
         setExpandedRows({});
         setSelectedDate(null);
+        setPickerMode("date");
+    };
+
+    const handlePickerModeChange = (value) => {
+        setPickerMode(value);
+        setSelectedDate(null);
     };
 
     const handleDateChange = (date, dateString) => {
         if (date) {
-            const localDate = moment(dateString, "DD/MM/YYYY").startOf("day");
-            console.log("Date from DatePicker:", dateString);
-            console.log("Local Date Set:", localDate.format("DD/MM/YYYY HH:mm:ss"));
+            let localDate;
+            if (pickerMode === "date") {
+                localDate = dayjs(dateString, "DD/MM/YYYY");
+            } else if (pickerMode === "week") {
+                localDate = dayjs(dateString, "YYYY-ww").startOf("week");
+            } else if (pickerMode === "month") {
+                localDate = dayjs(dateString, "MM/YYYY").startOf("month");
+            } else if (pickerMode === "year") {
+                localDate = dayjs(dateString, "YYYY").startOf("year");
+            }
+            console.log(`Selected ${pickerMode}:`, dateString);
+            console.log(`Local ${pickerMode} Set:`, localDate.format("DD/MM/YYYY HH:mm:ss"));
             setSelectedDate(localDate);
         } else {
             setSelectedDate(null);
@@ -161,17 +204,13 @@ const Resume = ({
     const columns = [
         {
             title: "STT",
-            key: "stt",
+            key: "index",
             render: (text, record, index) => (currentPage - 1) * pageSize + index + 1,
         },
-        {
-            title: "ID",
-            dataIndex: "_id",
-            key: "_id",
-        },
+        { title: "ID", dataIndex: "_id", key: "_id" },
         {
             title: "Chi tiết sản phẩm",
-            key: "items",
+            key: "item",
             render: (record) => (
                 <div>
                     <Button
@@ -203,7 +242,7 @@ const Resume = ({
             title: "Ngày tạo",
             dataIndex: "createdAt",
             key: "createdAt",
-            render: (date) => (date ? moment(date).format("DD/MM/YYYY HH:mm") : "N/A"),
+            render: (date) => (date ? dayjs(date).format("DD/MM/YYYY HH:mm") : "N/A"),
         },
         {
             title: "Hành động",
@@ -296,11 +335,39 @@ const Resume = ({
                 >
                     Sắp xếp theo tổng tiền
                 </Button>
+                <Select
+                    value={pickerMode}
+                    onChange={handlePickerModeChange}
+                    style={{ width: 120 }}
+                    options={[
+                        { value: "date", label: "Ngày" },
+                        { value: "week", label: "Tuần" },
+                        { value: "month", label: "Tháng" },
+                        { value: "year", label: "Năm" },
+                    ]}
+                    className="resume-picker-mode"
+                />
                 <DatePicker
                     onChange={handleDateChange}
                     value={selectedDate}
-                    format="DD/MM/YYYY"
-                    placeholder="Chọn ngày"
+                    picker={pickerMode}
+                    format={
+                        pickerMode === "date"
+                            ? "DD/MM/YYYY"
+                            : pickerMode === "week"
+                                ? "YYYY-ww"
+                                : pickerMode === "month"
+                                    ? "MM/YYYY"
+                                    : "YYYY"
+                    }
+                    placeholder={`Chọn ${pickerMode === "date"
+                            ? "ngày"
+                            : pickerMode === "week"
+                                ? "tuần"
+                                : pickerMode === "month"
+                                    ? "tháng"
+                                    : "năm"
+                        }`}
                     className="resume-date-picker"
                 />
                 <Button
@@ -313,7 +380,7 @@ const Resume = ({
             </Space>
             <Table
                 columns={columns}
-                dataSource={sortedResumes}
+                _suite_ dataSource={sortedResumes}
                 rowKey="_id"
                 pagination={false}
                 loading={loading}
@@ -369,21 +436,33 @@ const Resume = ({
                                             name={[name, "quantityPurchased"]}
                                             rules={[{ required: true, message: "Nhập số lượng" }]}
                                         >
-                                            <InputNumber min={1} placeholder="Số lượng" className="resume-input-number" />
+                                            <InputNumber
+                                                min={1}
+                                                placeholder="Số lượng"
+                                                className="resume-input-number"
+                                            />
                                         </Form.Item>
                                         <Form.Item
                                             {...restField}
                                             name={[name, "price"]}
                                             rules={[{ required: true, message: "Nhập giá" }]}
                                         >
-                                            <InputNumber min={0} placeholder="Giá" className="resume-input-number" />
+                                            <InputNumber
+                                                min={0}
+                                                placeholder="Giá"
+                                                className="resume-input-number"
+                                            />
                                         </Form.Item>
                                         <Form.Item
                                             {...restField}
                                             name={[name, "productTotalPrice"]}
                                             rules={[{ required: true, message: "Nhập tổng giá sản phẩm" }]}
                                         >
-                                            <InputNumber min={0} placeholder="Tổng giá sản phẩm" className="resume-input-number" />
+                                            <InputNumber
+                                                min={0}
+                                                placeholder="Tổng giá sản phẩm"
+                                                className="resume-input-number"
+                                            />
                                         </Form.Item>
                                         <Button
                                             danger

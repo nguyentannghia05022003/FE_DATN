@@ -84,7 +84,9 @@ const ResumePage = () => {
 
     return (
         <div>
-            <h2 className="resume-title">Danh Sách Resume</h2>
+            <h2 className="resume-title" style={{ color: "#1d39c4" }}>
+                Danh Sách Resume
+            </h2>
             <Resume
                 resumes={resumes}
                 fullResumes={fullResumes} // Truyền toàn bộ dữ liệu

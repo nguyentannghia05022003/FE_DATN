@@ -27,13 +27,13 @@ const UserTable = (props) => {
         const res = await deleteUserApi(id);
         if (res.data) {
             notification.success({
-                message: "Delete A User",
-                description: "Delete A User thành công !!",
+                message: "Xóa Người Dùng",
+                description: "Xóa người dùng thành công!",
             });
             await loadUser();
         } else {
             notification.error({
-                message: "Error Delete A User",
+                message: "Lỗi Xóa Người Dùng",
                 description: JSON.stringify(res.message),
             });
         }
@@ -55,8 +55,8 @@ const UserTable = (props) => {
 
     const handleCreateUser = () => {
         notification.info({
-            message: "Tính năng chưa được triển khai",
-            description: "Modal tạo người dùng chưa được triển khai.",
+            message: "Tính năng chưa triển khai",
+            description: "Chức năng tạo người dùng chưa được triển khai.",
         });
     };
 
@@ -77,7 +77,7 @@ const UserTable = (props) => {
                         setDataDetail(record);
                         setIsDetailOpen(true);
                     }}
-                    style={{ color: "#1890ff" }}
+                    style={{ color: "#0052cc" }}
                 >
                     {text.slice(0, 8)}...
                 </a>
@@ -86,7 +86,7 @@ const UserTable = (props) => {
             align: "center",
         },
         {
-            title: "Full Name",
+            title: "Họ Tên",
             dataIndex: "fullName",
             sorter: (a, b) => (a.fullName || "").localeCompare(b.fullName || ""),
             sortDirections: ["ascend", "descend"],
@@ -105,7 +105,7 @@ const UserTable = (props) => {
             width: 200,
         },
         {
-            title: "Action",
+            title: "Hành Động",
             key: "action",
             render: (_, record) => (
                 <div style={{ display: "flex", gap: "15px", justifyContent: "center" }}>
@@ -115,7 +115,7 @@ const UserTable = (props) => {
                                 setDataUpdate(record);
                                 setIsModalUpdateOpen(true);
                             }}
-                            style={{ cursor: "pointer", color: "#1890ff", fontSize: "16px" }}
+                            style={{ cursor: "pointer", color: "#0052cc", fontSize: "16px" }}
                         />
                     </Tooltip>
                     <Popconfirm
@@ -128,7 +128,7 @@ const UserTable = (props) => {
                     >
                         <Tooltip title="Xóa">
                             <DeleteOutlined
-                                style={{ cursor: "pointer", color: "red", fontSize: "16px" }}
+                                style={{ cursor: "pointer", color: "#d4380d", fontSize: "16px" }}
                             />
                         </Tooltip>
                     </Popconfirm>
@@ -142,35 +142,30 @@ const UserTable = (props) => {
     return (
         <div
             style={{
-                padding: "24px",
+                padding: "20px",
                 background: "#fff",
-                borderRadius: "8px",
-                boxShadow: "0 2px 8px rgba(0, 0, 0, 0.05)",
+                borderRadius: "6px",
+                border: "1px solid #e8ecef",
             }}
         >
             <div
                 style={{
                     display: "flex",
-                    justifyContent: "space-between",
+                    justifyContent: "flex-end",
                     alignItems: "center",
-                    marginBottom: "24px",
-                    flexWrap: "wrap",
-                    gap: "16px",
+                    marginBottom: "16px",
                 }}
             >
-                <h3 style={{ margin: 0, fontSize: "20px", color: "#1d39c4" }}>
-                    Table Users
-                </h3>
-                <Tooltip title="Tạo người dùng mới">
+                {/* <Tooltip title="Tạo người dùng mới">
                     <Button
                         type="primary"
                         onClick={handleCreateUser}
                         icon={<PlusOutlined />}
-                        style={{ borderRadius: "6px", background: "#1d39c4", borderColor: "#1d39c4" }}
+                        style={{ borderRadius: "4px", background: "#0052cc", borderColor: "#0052cc" }}
                     >
-                        Create User
+                        Tạo Người Dùng
                     </Button>
-                </Tooltip>
+                </Tooltip> */}
             </div>
 
             <Table
@@ -183,7 +178,7 @@ const UserTable = (props) => {
                     showSizeChanger: true,
                     total,
                     showTotal: (total, range) =>
-                        `${range[0]}-${range[1]} trên ${total} rows`,
+                        `${range[0]}-${range[1]} trên ${total} hàng`,
                     pageSizeOptions: ["5", "10", "20"],
                     style: { marginTop: "16px" },
                 }}
@@ -193,7 +188,7 @@ const UserTable = (props) => {
                 rowClassName={(record, index) =>
                     index % 2 === 0 ? "table-row-light" : "table-row-dark"
                 }
-                style={{ borderRadius: "8px", overflow: "hidden" }}
+                style={{ borderRadius: "6px", overflow: "hidden" }}
             />
 
             <UpdateUserModal

@@ -1,14 +1,25 @@
 .ant-table {
-    border-radius: 8px !important;
+    border-radius: 6px !important;
     overflow: hidden;
+    border: 1px solid #e8ecef !important;
 }
 
 .ant-table-thead>tr>th {
-    background-color: #f0f5ff !important;
-    color: #1d39c4 !important;
+    background: #f7f9fc !important;
+    color: #1a1a1a !important;
     font-weight: 600 !important;
-    border-bottom: 2px solid #d6e4ff !important;
+    font-size: 13px;
+    border-bottom: 1px solid #d9d9d9 !important;
     text-align: center !important;
+    padding: 10px !important;
+    text-transform: uppercase;
+}
+
+.ant-table-tbody>tr>td {
+    border-bottom: 1px solid #e8ecef !important;
+    padding: 10px !important;
+    font-size: 13px;
+    color: #333;
 }
 
 .ant-table-tbody>tr.table-row-light {
@@ -19,35 +30,78 @@
     background-color: #fafafa !important;
 }
 
-.ant-table-tbody>tr>td {
-    border-bottom: 1px solid #f0f0f0 !important;
-}
-
 .ant-table-tbody>tr:hover>td {
-    background-color: #e6f7ff !important;
+    background-color: #f0f5ff !important;
 }
 
+.ant-table-tbody>tr>td a {
+    color: #0052cc !important;
+}
+
+.ant-table-tbody>tr>td a:hover {
+    color: #003a8c !important;
+}
 
 .ant-pagination {
     margin-top: 16px !important;
+    display: flex;
+    justify-content: flex-end;
+}
+
+.ant-pagination-item {
+    border-radius: 4px !important;
+    border: 1px solid #e8ecef !important;
+    font-size: 13px;
 }
 
 .ant-pagination-item-active {
-    background-color: #1d39c4 !important;
-    border-color: #1d39c4 !important;
+    background: #0052cc !important;
+    border-color: #0052cc !important;
 }
 
 .ant-pagination-item-active a {
-    color: #fff !important;
+    color: #ffffff !important;
 }
 
 .ant-pagination-prev,
 .ant-pagination-next {
-    border-radius: 6px !important;
+    border-radius: 4px !important;
+    border: 1px solid #e8ecef !important;
 }
 
+.ant-btn-primary {
+    background: #0052cc !important;
+    border-color: #0052cc !important;
+    border-radius: 4px !important;
+    font-weight: 500;
+    padding: 4px 12px;
+}
+
+.ant-btn-primary:hover {
+    background: #003a8c !important;
+    border-color: #003a8c !important;
+}
 
 .ant-empty-description {
-    color: #8c8c8c !important;
-    font-size: 16px !important;
+    color: #666 !important;
+    font-size: 14px !important;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+
+    .ant-table-thead>tr>th,
+    .ant-table-tbody>tr>td {
+        font-size: 12px !important;
+        padding: 8px !important;
+    }
+
+    .ant-btn-primary {
+        padding: 4px 10px;
+        font-size: 13px;
+    }
+
+    .ant-pagination {
+        justify-content: center;
+    }
 }

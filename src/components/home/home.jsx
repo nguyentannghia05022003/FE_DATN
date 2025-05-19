@@ -73,7 +73,7 @@ function Home() {
                     />
                     <DashboardCard
                         icon={<ShoppingOutlined className="icon inventory-icon" />}
-                        title={"Inventory"}
+                        title={"Products"}
                         value={inventory}
                     />
                     <DashboardCard
@@ -158,7 +158,7 @@ function ExpiringProducts({ user }) {
             <Typography.Title level={5}>Product sắp hết hạn sử dụng</Typography.Title>
             <Table
                 columns={[
-                    { title: "Title", dataIndex: "mainText" },
+                    // { title: "Title", dataIndex: "mainText" },
                     { title: "Name", dataIndex: "name" },
                     { title: "Barcode", dataIndex: "barCode" },
                     { title: "Quantity", dataIndex: "quantity" },
