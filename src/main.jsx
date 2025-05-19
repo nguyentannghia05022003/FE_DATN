@@ -25,6 +25,7 @@ import ResumePage from './pages/ResumePage.jsx';
 import dayjs from 'dayjs';
 import weekOfYear from 'dayjs/plugin/weekOfYear';
 import isBetween from 'dayjs/plugin/isBetween';
+import './styles.css';
 
 const router = createBrowserRouter([
   {

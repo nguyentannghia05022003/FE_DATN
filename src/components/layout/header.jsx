@@ -13,7 +13,7 @@ import {
     BarsOutlined,
     LogoutOutlined,
     BankOutlined,
-    FileTextOutlined, // Icon cho Resume
+    FileTextOutlined,
 } from '@ant-design/icons';
 import { Link, useLocation, useNavigate, Outlet } from 'react-router-dom';
 import './header.css';
@@ -23,7 +23,7 @@ import { logoutApi } from '../../services/api.service';
 const { Sider, Content, Footer, Header: AntHeader } = Layout;
 
 const Header = () => {
-    const [collapsed, setCollapsed] = useState(false);
+    const [collapsed, setCollapsed] = useState(window.innerWidth <= 768); // Thu gọn Sider trên mobile
     const [current, setCurrent] = useState('home');
     const [darkMode, setDarkMode] = useState(false);
     const { user, setUser } = useContext(AuthContext);
@@ -37,7 +37,7 @@ const Header = () => {
                 'products',
                 'app',
                 'banking',
-                'resumes', // Thêm resumes vào danh sách route
+                'resumes',
                 'setting',
                 'setting/change-password',
                 'setting/infor',
@@ -100,7 +100,7 @@ const Header = () => {
             icon: <BankOutlined />,
         },
         {
-            label: <Link to='/resumes'>Resumes</Link>, // Thêm mục Resumes
+            label: <Link to='/resumes'>Resumes</Link>,
             key: 'resumes',
             icon: <FileTextOutlined />,
         },
@@ -154,19 +154,24 @@ const Header = () => {
                     height: '100vh',
                     zIndex: 101,
                 }}
+                breakpoint="md" // Tự động thu gọn trên màn hình nhỏ hơn 768px
+                collapsedWidth={window.innerWidth <= 768 ? 0 : 80} // Ẩn hoàn toàn trên mobile khi collapsed
             >
                 <div className='logo' style={{ height: '32px', margin: '16px' }} />
                 <Menu selectedKeys={[current]} mode='inline' theme='dark' items={items} />
             </Sider>
             <Layout
                 style={{
-                    marginLeft: collapsed ? '80px' : '200px',
+                    marginLeft: collapsed ? (window.innerWidth <= 768 ? 0 : 80) : 200,
                     transition: 'margin-left 0.2s',
                 }}
             >
                 <AntHeader className='top-header'>
                     <div className='header-left'>
-                        <h3>{collapsed ? 'Expand Menu' : 'Collapse Menu'}</h3>
+                        <BarsOutlined onClick={toggleCollapsed} style={{ fontSize: '20px', cursor: 'pointer' }} />
+                        <h3 style={{ marginLeft: '10px', display: 'inline' }}>
+                            {collapsed ? 'Expand Menu' : 'Collapse Menu'}
+                        </h3>
                     </div>
                     <div className='header-right'>
                         <Popover content={notifications} title="Thông báo" trigger="click" placement="bottomRight">
@@ -198,8 +203,8 @@ const Header = () => {
                         )}
                     </div>
                 </AntHeader>
-                <Content style={{ margin: '16px' }}>
-                    <div style={{ padding: 24, minHeight: 360, background: darkMode ? '#333' : '#fff' }}>
+                <Content style={{ margin: '16px', padding: '0 8px' }}>
+                    <div style={{ padding: 16, minHeight: 360, background: darkMode ? '#333' : '#fff' }}>
                         <Outlet />
                     </div>
                 </Content>

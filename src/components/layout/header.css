@@ -1,24 +1,26 @@
-/* Thanh header ngang phía trên */
+/* src/components/header.css */
 .top-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 0 24px;
-    background: #fff;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
-    position: sticky;
-    top: 0;
-    z-index: 100;
+    padding: 0 16px;
+    background: #ffffff;
+    /* Thay đổi màu nền thành trắng */
+    color: #000000;
+    /* Đổi màu text thành đen để tương phản */
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    /* Thêm bóng nhẹ để phân biệt header */
 }
 
-.header-left h3 {
-    margin: 0;
-    font-size: 16px;
+.header-left {
+    display: flex;
+    align-items: center;
 }
 
 .header-right {
     display: flex;
     align-items: center;
+    gap: 10px;
 }
 
 .user-info {
@@ -26,27 +28,42 @@
     align-items: center;
 }
 
-/* Chế độ sáng/tối */
-.light-mode {
-    background: #f0f2f5;
+.header-left h3 {
+    margin-left: 10px;
+    display: inline;
+    color: #000000;
+    /* Đảm bảo màu text của "Expand Menu" là đen */
 }
 
-.dark-mode {
-    background: #1f1f1f;
-}
+@media (max-width: 768px) {
+    .top-header {
+        padding: 0 8px;
+    }
 
-.dark-mode .ant-layout-sider {
-    background: #333 !important;
-}
+    .header-left h3 {
+        font-size: 14px;
+    }
 
-.dark-mode .ant-menu-dark {
-    background: #333 !important;
-}
+    .header-right {
+        gap: 5px;
+    }
 
-.dark-mode .ant-menu-item {
-    color: #fff !important;
-}
+    .header-right span {
+        font-size: 12px;
+    }
 
-.dark-mode .ant-menu-item-selected {
-    background: #555 !important;
+    .ant-avatar {
+        width: 32px !important;
+        height: 32px !important;
+        line-height: 32px !important;
+    }
+
+    .ant-switch {
+        transform: scale(0.8);
+        margin-right: 8px !important;
+    }
+
+    .ant-badge {
+        font-size: 12px;
+    }
 }

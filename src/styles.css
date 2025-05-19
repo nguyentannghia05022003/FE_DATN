@@ -1,0 +1,57 @@
+/* src/styles.css */
+
+/* Reset mặc định */
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+/* Responsive cho Table của Ant Design */
+.ant-table-wrapper {
+    overflow-x: auto;
+}
+
+.ant-table {
+    width: 100% !important;
+}
+
+/* Responsive cho Card */
+.ant-card {
+    width: 100%;
+}
+
+/* Responsive cho Select và các thành phần chung */
+.ant-select {
+    width: 100% !important;
+    max-width: 200px;
+}
+
+/* Responsive cho Chart */
+.chart-wrapper {
+    height: 300px;
+    position: relative;
+}
+
+/* Media queries cho điện thoại */
+@media (max-width: 768px) {
+    .ant-table {
+        font-size: 12px;
+    }
+
+    .ant-statistic-title {
+        font-size: 12px;
+    }
+
+    .ant-statistic-content {
+        font-size: 16px;
+    }
+
+    .chart-wrapper {
+        height: 200px;
+    }
+
+    .ant-select {
+        max-width: 150px;
+    }
+}
