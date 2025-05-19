@@ -1,3 +1,4 @@
+// src/components/Header.jsx
 import React, { useContext, useEffect, useState } from 'react';
 import { Menu, message, Layout, Avatar, Badge, Dropdown, Switch, Popover } from 'antd';
 import {
@@ -12,6 +13,7 @@ import {
     BarsOutlined,
     LogoutOutlined,
     BankOutlined,
+    FileTextOutlined, // Icon cho Resume
 } from '@ant-design/icons';
 import { Link, useLocation, useNavigate, Outlet } from 'react-router-dom';
 import './header.css';
@@ -30,7 +32,16 @@ const Header = () => {
 
     useEffect(() => {
         if (location && location.pathname) {
-            const allRoutes = ['users', 'products', 'app', 'banking', 'setting', 'setting/change-password', 'setting/infor'];
+            const allRoutes = [
+                'users',
+                'products',
+                'app',
+                'banking',
+                'resumes', // Thêm resumes vào danh sách route
+                'setting',
+                'setting/change-password',
+                'setting/infor',
+            ];
             const currentRoute = allRoutes.find((item) => `/${item}` === location.pathname);
             setCurrent(currentRoute || 'home');
         }
@@ -49,14 +60,16 @@ const Header = () => {
     };
 
     const handleLogout = async () => {
-        const res = await logoutApi();
-        if (res.data) {
-            localStorage.removeItem('access_token');
-            message.success('Logout Success!');
-            setUser({ email: '', phone: '', fullName: '', role: '', avatar: '', _id: '' });
-            navigate('/');
-            // console.log(">> Check res: ", user);
-            // console.log(`${import.meta.env.VITE_BACKEND_URL}/images/avatar`)
+        try {
+            const res = await logoutApi();
+            if (res.data) {
+                localStorage.removeItem('access_token');
+                message.success('Logout Success!');
+                setUser({ email: '', phone: '', fullName: '', role: '', avatar: '', _id: '' });
+                navigate('/');
+            }
+        } catch (error) {
+            message.error('Logout Failed!');
         }
     };
 
@@ -85,6 +98,11 @@ const Header = () => {
             label: <Link to='/banking'>Banking</Link>,
             key: 'banking',
             icon: <BankOutlined />,
+        },
+        {
+            label: <Link to='/resumes'>Resumes</Link>, // Thêm mục Resumes
+            key: 'resumes',
+            icon: <FileTextOutlined />,
         },
         {
             label: 'Setting',

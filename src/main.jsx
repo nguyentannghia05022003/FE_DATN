@@ -21,6 +21,7 @@ import ForgotPassword from './pages/forgot-password.jsx';
 import ChangePassword from './pages/change-password.jsx';
 import Setting from './pages/setting.jsx';
 import PersonalInformation from './pages/personal-information.jsx';
+import ResumePage from './pages/ResumePage.jsx';
 
 const router = createBrowserRouter([
   {
@@ -69,6 +70,15 @@ const router = createBrowserRouter([
       },
 
       {
+        path: "/resumes",
+        element: (
+          <PrivateRoute>
+            <ResumePage />
+          </PrivateRoute>
+        )
+      },
+
+      {
         path: "/setting",
         element: (
           <PrivateRoute>
@@ -103,7 +113,7 @@ const router = createBrowserRouter([
   {
     path: "/forgot-password",
     element: <ForgotPassword />
-  }
+  },
 ]);
 
 ReactDOM.createRoot(document.getElementById('root')).render(

@@ -1,0 +1,273 @@
+.resume-container {
+    padding: 30px;
+    background: linear-gradient(to bottom right, #e6f0fa, #f7f7f7);
+    min-height: 100vh;
+    position: relative;
+}
+
+.total-income-container {
+    position: absolute;
+    top: 30px;
+    right: 30px;
+}
+
+.total-income-box {
+    background-color: #4a90e2;
+    color: #fff;
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-weight: 600;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.resume-container h2 {
+    font-size: 28px;
+    font-weight: 700;
+    color: #2d3748;
+    margin-bottom: 25px;
+    text-align: center;
+}
+
+.resume-action-space {
+    margin-bottom: 20px;
+}
+
+.resume-add-btn {
+    background-color: #4a90e2;
+    border-color: #4a90e2;
+    border-radius: 8px;
+    padding: 8px 16px;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+.resume-add-btn:hover {
+    background-color: #357abd;
+    border-color: #357abd;
+}
+
+.resume-sort-btn {
+    background-color: #a0aec0;
+    border-color: #a0aec0;
+    color: #fff;
+    border-radius: 8px;
+    padding: 8px 16px;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    margin-left: 8px;
+}
+
+.resume-sort-btn:hover {
+    background-color: #718096;
+    border-color: #718096;
+}
+
+.resume-date-picker {
+    border-radius: 8px;
+    border: 1px solid #d1d5db;
+    padding: 8px;
+    margin-left: 8px;
+    transition: all 0.3s ease;
+}
+
+.resume-date-picker:hover,
+.resume-date-picker:focus {
+    border-color: #4a90e2;
+    box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.1);
+}
+
+.resume-refresh-btn {
+    background-color: #ecc94b;
+    border-color: #ecc94b;
+    color: #fff;
+    border-radius: 8px;
+    padding: 8px 16px;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    margin-left: 8px;
+}
+
+.resume-refresh-btn:hover {
+    background-color: #d69e2e;
+    border-color: #d69e2e;
+}
+
+.resume-table {
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    background-color: #fff;
+}
+
+.resume-table .ant-table-thead>tr>th {
+    background-color: #edf2f7;
+    color: #4a5568;
+    font-weight: 600;
+    text-align: center;
+    padding: 12px;
+    border-bottom: 2px solid #d1d5db;
+}
+
+.resume-table .ant-table-tbody>tr>td {
+    text-align: center;
+    padding: 12px;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.table-row-light {
+    background-color: #ffffff;
+    transition: background-color 0.2s;
+}
+
+.table-row-light:hover {
+    background-color: #f1f5f9;
+}
+
+.table-row-dark {
+    background-color: #f9fafb;
+    transition: background-color 0.2s;
+}
+
+.table-row-dark:hover {
+    background-color: #e2e8f0;
+}
+
+.resume-sub-table {
+    margin: 10px 0;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+}
+
+.resume-sub-table .ant-table-thead>tr>th {
+    background-color: #f7fafc;
+    color: #718096;
+    font-weight: 500;
+    font-size: 14px;
+    padding: 8px;
+}
+
+.resume-sub-table .ant-table-tbody>tr>td {
+    padding: 8px;
+    font-size: 14px;
+}
+
+.resume-toggle-btn {
+    background-color: #68d391;
+    border-color: #68d391;
+    color: #fff;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+}
+
+.resume-toggle-btn:hover {
+    background-color: #4caf73;
+    border-color: #4caf73;
+}
+
+.resume-delete-btn {
+    border-radius: 8px;
+    transition: all 0.3s ease;
+}
+
+.resume-delete-btn:hover {
+    background-color: #e53e3e;
+    color: #fff;
+    border-color: #e53e3e;
+}
+
+.resume-pagination {
+    margin-top: 20px;
+    text-align: right;
+}
+
+.resume-pagination .ant-pagination-item {
+    border-radius: 6px;
+}
+
+.resume-pagination .ant-pagination-item-active {
+    background-color: #4a90e2;
+    border-color: #4a90e2;
+}
+
+.resume-pagination .ant-pagination-item-active a {
+    color: #fff;
+}
+
+.resume-modal .ant-modal-content {
+    border-radius: 12px;
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
+}
+
+.resume-modal .ant-modal-header {
+    border-radius: 12px 12px 0 0;
+    background-color: #4a90e2;
+    color: #fff;
+}
+
+.resume-modal .ant-modal-title {
+    color: #fff;
+    font-weight: 600;
+}
+
+.resume-form .ant-form-item {
+    margin-bottom: 16px;
+}
+
+.resume-form-space {
+    display: flex;
+    margin-bottom: 12px;
+}
+
+.resume-input,
+.resume-input-number {
+    border-radius: 8px;
+    border: 1px solid #d1d5db;
+    transition: all 0.3s ease;
+}
+
+.resume-input:focus,
+.resume-input-number:focus {
+    border-color: #4a90e2;
+    box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.1);
+}
+
+.resume-input-number {
+    width: 100%;
+}
+
+.resume-add-item-btn {
+    border: 1px dashed #4a90e2;
+    color: #4a90e2;
+    border-radius: 8px;
+    margin-top: 10px;
+    transition: all 0.3s ease;
+}
+
+.resume-add-item-btn:hover {
+    background-color: #edf2f7;
+    border-color: #357abd;
+    color: #357abd;
+}
+
+.resume-total-price {
+    width: 100%;
+    border-radius: 8px;
+    border: 1px solid #d1d5db;
+    transition: all 0.3s ease;
+}
+
+.resume-total-price:focus {
+    border-color: #4a90e2;
+    box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.1);
+}
+
+.resume-delete-item-btn {
+    border-radius: 8px;
+    transition: all 0.3s ease;
+}
+
+.resume-delete-item-btn:hover {
+    background-color: #e53e3e;
+    color: #fff;
+    border-color: #e53e3e;
+}
