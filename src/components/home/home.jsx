@@ -123,7 +123,7 @@ function ExpiringProducts({ user }) {
             setLoading(true);
             fetchAllProductAPI().then((res) => {
                 const products = res.data?.result || [];
-                const currentDate = new Date("2025-05-19"); // Ngày hiện tại
+                const currentDate = new Date(); // Ngày hiện tại
                 const thresholdDate = new Date(currentDate);
                 thresholdDate.setDate(currentDate.getDate() + 7);
 

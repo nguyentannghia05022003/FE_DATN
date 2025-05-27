@@ -1,47 +1,97 @@
+/* Table Container */
+.user-table-container {
+    padding: 24px;
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+/* Table Header */
+.ant-table-thead>tr>th {
+    background: #e6f0fa !important;
+    color: #1a1a1a !important;
+    font-weight: 600 !important;
+    font-size: 12px !important;
+    border-bottom: 1px solid #d9d9d9 !important;
+    text-align: center !important;
+    padding: 12px 8px !important;
+    text-transform: uppercase;
+    transition: background 0.3s ease;
+}
+
+/* Table Body */
+.ant-table-tbody>tr>td {
+    border-bottom: 1px solid #e8ecef !important;
+    padding: 12px 8px !important;
+    font-size: 13px !important;
+    color: #333 !important;
+    text-align: center;
+    transition: background 0.3s ease;
+}
+
+/* Row Alternation */
+.ant-table-tbody>tr.table-row-light {
+    background-color: #ffffff !important;
+}
+
+.ant-table-tbody>tr.table-row-dark {
+    background-color: #f9f9f9 !important;
+}
+
+/* Hover Effect */
+.ant-table-tbody>tr:hover>td {
+    background-color: #e6f0fa !important;
+}
+
+/* Links in Table */
+.ant-table-tbody>tr>td a {
+    color: #0052cc !important;
+    text-decoration: none;
+}
+
+.ant-table-tbody>tr>td a:hover {
+    color: #003a8c !important;
+    text-decoration: underline;
+}
+
+/* Table Border and Overflow */
 .ant-table {
     border-radius: 6px !important;
     overflow: hidden;
     border: 1px solid #e8ecef !important;
 }
 
-.ant-table-thead>tr>th {
-    background: #f7f9fc !important;
-    color: #1a1a1a !important;
-    font-weight: 600 !important;
-    font-size: 13px;
-    border-bottom: 1px solid #d9d9d9 !important;
-    text-align: center !important;
-    padding: 10px !important;
-    text-transform: uppercase;
+/* Action Icons */
+.ant-table-tbody>tr>td .action-icons {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
 }
 
-.ant-table-tbody>tr>td {
-    border-bottom: 1px solid #e8ecef !important;
-    padding: 10px !important;
-    font-size: 13px;
-    color: #333;
+.action-icons .edit-icon,
+.action-icons .delete-icon {
+    font-size: 16px !important;
+    cursor: pointer;
+    transition: color 0.3s ease;
 }
 
-.ant-table-tbody>tr.table-row-light {
-    background-color: #ffffff !important;
+.action-icons .edit-icon {
+    color: #1890ff !important;
 }
 
-.ant-table-tbody>tr.table-row-dark {
-    background-color: #fafafa !important;
+.action-icons .delete-icon {
+    color: #ff4d4f !important;
 }
 
-.ant-table-tbody>tr:hover>td {
-    background-color: #f0f5ff !important;
+.action-icons .edit-icon:hover {
+    color: #40a9ff !important;
 }
 
-.ant-table-tbody>tr>td a {
-    color: #0052cc !important;
+.action-icons .delete-icon:hover {
+    color: #f5222d !important;
 }
 
-.ant-table-tbody>tr>td a:hover {
-    color: #003a8c !important;
-}
-
+/* Pagination */
 .ant-pagination {
     margin-top: 16px !important;
     display: flex;
@@ -51,7 +101,7 @@
 .ant-pagination-item {
     border-radius: 4px !important;
     border: 1px solid #e8ecef !important;
-    font-size: 13px;
+    font-size: 13px !important;
 }
 
 .ant-pagination-item-active {
@@ -69,12 +119,14 @@
     border: 1px solid #e8ecef !important;
 }
 
+/* Primary Button */
 .ant-btn-primary {
     background: #0052cc !important;
     border-color: #0052cc !important;
     border-radius: 4px !important;
     font-weight: 500;
     padding: 4px 12px;
+    transition: all 0.3s ease;
 }
 
 .ant-btn-primary:hover {
@@ -82,26 +134,32 @@
     border-color: #003a8c !important;
 }
 
+/* Empty State */
 .ant-empty-description {
     color: #666 !important;
     font-size: 14px !important;
 }
 
-/* Responsive adjustments */
+/* Responsive Adjustments */
 @media (max-width: 768px) {
 
     .ant-table-thead>tr>th,
     .ant-table-tbody>tr>td {
-        font-size: 12px !important;
-        padding: 8px !important;
+        font-size: 11px !important;
+        padding: 8px 4px !important;
     }
 
     .ant-btn-primary {
-        padding: 4px 10px;
-        font-size: 13px;
+        padding: 4px 8px !important;
+        font-size: 12px !important;
     }
 
     .ant-pagination {
         justify-content: center;
+    }
+
+    .action-icons .edit-icon,
+    .action-icons .delete-icon {
+        font-size: 14px !important;
     }
 }

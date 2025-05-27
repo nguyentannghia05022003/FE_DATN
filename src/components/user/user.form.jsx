@@ -40,10 +40,11 @@ const UserForm = (props) => {
 
     return (
         <div className="user-form" style={{ margin: "20px 20px" }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px" }}>
-                <h3 style={{ margin: 0, fontSize: "18px", fontWeight: 600, color: " #1d39c4 " }}>
-                    Danh Sách Người Dùng
-                </h3>
+            <div style={{ display: "flex", justifyContent: "space-between" }}>
+                <h3></h3>
+                <Button
+                    onClick={() => setIsModalOpen(true)}
+                    type="primary">Create User</Button>
             </div>
 
             <Modal

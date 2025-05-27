@@ -19,12 +19,15 @@ import {
     SortAscendingOutlined,
     SortDescendingOutlined,
     ReloadOutlined,
+    SearchOutlined,
 } from "@ant-design/icons";
 import dayjs from "dayjs";
-import weekOfYear from "dayjs/plugin/weekOfYear"; // Correct plugin import
+import weekOfYear from "dayjs/plugin/weekOfYear";
 import "./Resume.css";
 
 dayjs.extend(weekOfYear);
+
+const { Search } = Input;
 
 const Resume = ({
     resumes,
@@ -41,31 +44,46 @@ const Resume = ({
 }) => {
     const [isModalVisible, setIsModalVisible] = useState(false);
     const [expandedRows, setExpandedRows] = useState({});
-    const [sortOrder, setSortOrder] = useState({ field: null, order: null });
+    const [sortOrder, setSortOrder] = useState({ field: "createdAt", order: "desc" });
     const [sortedResumes, setSortedResumes] = useState([]);
     const [filteredResumes, setFilteredResumes] = useState([]);
     const [selectedDate, setSelectedDate] = useState(null);
     const [totalIncome, setTotalIncome] = useState(0);
     const [pickerMode, setPickerMode] = useState("date");
+    const [searchOrderCode, setSearchOrderCode] = useState(""); // State cho mã đơn hàng tìm kiếm
     const [form] = Form.useForm();
 
     useEffect(() => {
         const resumeList = Array.isArray(resumes) ? resumes : [];
         console.log("Resumes (paginated) received:", resumeList);
         if (!selectedDate && !sortOrder.field) {
+            const sortedList = [...resumeList].sort((a, b) => {
+                const dateA = new Date(a.createdAt).getTime();
+                const dateB = new Date(b.createdAt).getTime();
+                return dateB - dateA;
+            });
+            setSortedResumes(sortedList);
+        } else {
             setSortedResumes(resumeList);
         }
     }, [resumes, selectedDate, sortOrder]);
 
     useEffect(() => {
-        const fullResumeList = Array.isArray(fullResumes) ? fullResumes : [];
+        const fullResumeList = Array.isArray(fullResumes) ? [...fullResumes] : [];
         console.log("Full resumes received:", fullResumeList);
-        setFilteredResumes(fullResumeList);
-        calculateTotalIncome(fullResumeList);
+        const sortedFullList = fullResumeList.sort((a, b) => {
+            const dateA = new Date(a.createdAt).getTime();
+            const dateB = new Date(b.createdAt).getTime();
+            return dateB - dateA;
+        });
+        setFilteredResumes(sortedFullList);
+        calculateTotalIncome(sortedFullList);
     }, [fullResumes]);
 
     useEffect(() => {
         let resumeList = Array.isArray(fullResumes) ? [...fullResumes] : [];
+
+        // Lọc theo ngày/tháng/năm nếu có selectedDate
         if (selectedDate) {
             console.log("Picker Mode:", pickerMode);
             console.log("Selected Date:", selectedDate.format("DD/MM/YYYY HH:mm:ss"));
@@ -101,20 +119,31 @@ const Resume = ({
                 notification.warning({
                     message: "Không tìm thấy",
                     description: `Không có resume nào trong ${pickerMode === "date"
-                            ? "ngày"
-                            : pickerMode === "week"
-                                ? "tuần"
-                                : pickerMode === "month"
-                                    ? "tháng"
-                                    : "năm"
+                        ? "ngày"
+                        : pickerMode === "week"
+                            ? "tuần"
+                            : pickerMode === "month"
+                                ? "tháng"
+                                : "năm"
                         } đã chọn.`,
                 });
             }
         }
 
-        setFilteredResumes(resumeList);
-        calculateTotalIncome(resumeList);
+        // Lọc theo mã đơn hàng nếu có giá trị tìm kiếm
+        if (searchOrderCode) {
+            resumeList = resumeList.filter((resume) =>
+                resume.orderCode?.toLowerCase().includes(searchOrderCode.toLowerCase())
+            );
+            if (resumeList.length === 0) {
+                notification.warning({
+                    message: "Không tìm thấy",
+                    description: `Không có resume nào khớp với mã đơn hàng "${searchOrderCode}".`,
+                });
+            }
+        }
 
+        // Sắp xếp theo sortOrder
         if (sortOrder.field) {
             resumeList = resumeList.sort((a, b) => {
                 if (sortOrder.field === "createdAt") {
@@ -126,13 +155,22 @@ const Resume = ({
                 }
                 return 0;
             });
+        } else {
+            resumeList = resumeList.sort((a, b) => {
+                const dateA = new Date(a.createdAt).getTime();
+                const dateB = new Date(b.createdAt).getTime();
+                return dateB - dateA;
+            });
         }
+
+        setFilteredResumes(resumeList);
+        calculateTotalIncome(resumeList);
 
         const startIndex = (currentPage - 1) * pageSize;
         const endIndex = startIndex + pageSize;
         const paginatedList = resumeList.slice(startIndex, endIndex);
         setSortedResumes(paginatedList);
-    }, [selectedDate, fullResumes, sortOrder, currentPage, pageSize, pickerMode]);
+    }, [selectedDate, fullResumes, sortOrder, currentPage, pageSize, pickerMode, searchOrderCode]);
 
     const calculateTotalIncome = (resumesList) => {
         const total = resumesList.reduce((sum, resume) => sum + (resume.totalPrice || 0), 0);
@@ -170,10 +208,11 @@ const Resume = ({
         if (onRefresh) {
             onRefresh();
         }
-        setSortOrder({ field: null, order: null });
+        setSortOrder({ field: "createdAt", order: "desc" });
         setExpandedRows({});
         setSelectedDate(null);
         setPickerMode("date");
+        setSearchOrderCode(""); // Đặt lại giá trị tìm kiếm
     };
 
     const handlePickerModeChange = (value) => {
@@ -201,6 +240,79 @@ const Resume = ({
         }
     };
 
+    const handleSearchOrderCode = (value) => {
+        setSearchOrderCode(value.trim());
+    };
+
+    const handleDeleteAll = async () => {
+        if (!selectedDate) {
+            notification.warning({
+                message: "Chưa chọn thời gian",
+                description: "Vui lòng chọn ngày, tuần, tháng hoặc năm để xóa tất cả resume.",
+            });
+            return;
+        }
+
+        Modal.confirm({
+            title: "Xác nhận xóa tất cả",
+            content: `Bạn có chắc chắn muốn xóa tất cả resume trong ${pickerMode === "date"
+                ? "ngày"
+                : pickerMode === "week"
+                    ? "tuần"
+                    : pickerMode === "month"
+                        ? "tháng"
+                        : "năm"
+                } đã chọn?`,
+            okText: "Xóa",
+            cancelText: "Hủy",
+            onOk: async () => {
+                try {
+                    const resumesToDelete = filteredResumes.filter((resume) => {
+                        const resumeDate = dayjs(resume.createdAt);
+                        let isMatch = false;
+
+                        if (pickerMode === "date") {
+                            isMatch = resumeDate.startOf("day").isSame(selectedDate.startOf("day"), "day");
+                        } else if (pickerMode === "week") {
+                            isMatch = resumeDate.isBetween(
+                                selectedDate.startOf("week"),
+                                selectedDate.endOf("week"),
+                                null,
+                                "[]"
+                            );
+                        } else if (pickerMode === "month") {
+                            isMatch = resumeDate.startOf("month").isSame(selectedDate.startOf("month"), "month");
+                        } else if (pickerMode === "year") {
+                            isMatch = resumeDate.startOf("year").isSame(selectedDate.startOf("year"), "year");
+                        }
+
+                        return isMatch;
+                    });
+
+                    if (resumesToDelete.length === 0) {
+                        notification.info({
+                            message: "Không có resume",
+                            description: "Không có resume nào để xóa trong khoảng thời gian đã chọn.",
+                        });
+                        return;
+                    }
+
+                    await Promise.all(resumesToDelete.map((resume) => onDeleteResume(resume._id)));
+                    notification.success({
+                        message: "Thành công",
+                        description: `Đã xóa ${resumesToDelete.length} resume thành công!`,
+                    });
+                    handleRefresh();
+                } catch (error) {
+                    notification.error({
+                        message: "Lỗi",
+                        description: error.response?.data?.message || "Không thể xóa các resume.",
+                    });
+                }
+            },
+        });
+    };
+
     const columns = [
         {
             title: "STT",
@@ -208,6 +320,7 @@ const Resume = ({
             render: (text, record, index) => (currentPage - 1) * pageSize + index + 1,
         },
         { title: "ID", dataIndex: "_id", key: "_id" },
+        { title: "Mã đơn hàng", dataIndex: "orderCode", key: "orderCode" }, // Thêm cột Mã đơn hàng
         {
             title: "Chi tiết sản phẩm",
             key: "item",
@@ -361,15 +474,31 @@ const Resume = ({
                                     : "YYYY"
                     }
                     placeholder={`Chọn ${pickerMode === "date"
-                            ? "ngày"
-                            : pickerMode === "week"
-                                ? "tuần"
-                                : pickerMode === "month"
-                                    ? "tháng"
-                                    : "năm"
+                        ? "ngày"
+                        : pickerMode === "week"
+                            ? "tuần"
+                            : pickerMode === "month"
+                                ? "tháng"
+                                : "năm"
                         }`}
                     className="resume-date-picker"
                 />
+                <Search
+                    placeholder="Tìm kiếm mã đơn hàng"
+                    allowClear
+                    enterButton={<SearchOutlined />}
+                    onSearch={handleSearchOrderCode}
+                    style={{ width: 200 }}
+                    className="resume-search-order"
+                />
+                <Button
+                    icon={<DeleteOutlined />}
+                    danger
+                    onClick={handleDeleteAll}
+                    className="resume-delete-all-btn"
+                >
+                    Xóa tất cả
+                </Button>
                 <Button
                     icon={<ReloadOutlined />}
                     onClick={handleRefresh}
@@ -380,7 +509,7 @@ const Resume = ({
             </Space>
             <Table
                 columns={columns}
-                _suite_ dataSource={sortedResumes}
+                dataSource={sortedResumes}
                 rowKey="_id"
                 pagination={false}
                 loading={loading}
