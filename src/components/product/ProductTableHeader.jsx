@@ -1,4 +1,4 @@
-import { Input, Button, Upload, Tooltip, DatePicker } from "antd";
+import { Input, Button, Upload, Tooltip, DatePicker, Select } from "antd";
 import {
     SearchOutlined,
     ReloadOutlined,
@@ -25,6 +25,8 @@ const ProductTableHeader = ({
     setStartDate,
     endDate,
     setEndDate,
+    expirationFilter,
+    setExpirationFilter,
 }) => {
     return (
         <div
@@ -69,6 +71,17 @@ const ProductTableHeader = ({
                     onChange={(date, dateString) => setEndDate(dateString)}
                     style={{ width: 200, borderRadius: "6px" }}
                 />
+                <Select
+                    placeholder="Lọc theo hạn sử dụng"
+                    value={expirationFilter}
+                    onChange={(value) => setExpirationFilter(value)}
+                    style={{ width: 200, borderRadius: "6px" }}
+                    options={[
+                        { value: "all", label: "Tất cả" },
+                        { value: "expired", label: "Đã hết hạn" },
+                        { value: "soon", label: "Sắp hết hạn (15 ngày)" },
+                    ]}
+                />
                 <Tooltip title="Làm mới dữ liệu">
                     <Button
                         onClick={() => {
@@ -76,6 +89,7 @@ const ProductTableHeader = ({
                             setSearchBarcode("");
                             setStartDate("");
                             setEndDate("");
+                            setExpirationFilter("all");
                             setCurrent(1);
                             loadProduct();
                         }}

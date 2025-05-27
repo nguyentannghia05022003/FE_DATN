@@ -12,6 +12,7 @@ import ProductTableContent from "./ProductTableContent";
 import ProductTableActions from "./ProductTableActions";
 import ProductTableModals from "./ProductTableModals";
 import "./product.table.css";
+import dayjs from "dayjs";
 
 // Hàm loại bỏ dấu tiếng Việt và chuyển về chữ thường
 const removeDiacritics = (str) => {
@@ -45,6 +46,7 @@ const ProductTable = () => {
     const [searchBarcode, setSearchBarcode] = useState("");
     const [startDate, setStartDate] = useState("");
     const [endDate, setEndDate] = useState("");
+    const [expirationFilter, setExpirationFilter] = useState("all");
     const [loadingTable, setLoadingTable] = useState(false);
 
     const [isCreateOpen, setIsCreateOpen] = useState(false);
@@ -78,7 +80,6 @@ const ProductTable = () => {
                 return dateA - dateB;
             });
             setDataProduct(sortedData);
-            // Áp dụng bộ lọc ngay sau khi tải dữ liệu
             handleSearch(sortedData);
         } catch (error) {
             notification.error({
@@ -97,7 +98,7 @@ const ProductTable = () => {
     const handleSearch = useCallback((data = dataProduct) => {
         let filtered = [...data];
 
-        if (searchText || searchBarcode || startDate || endDate) {
+        if (searchText || searchBarcode || startDate || endDate || expirationFilter !== "all") {
             if (searchText) {
                 const normalizedSearchText = removeDiacritics(searchText);
                 filtered = filtered.filter((item) => {
@@ -124,17 +125,33 @@ const ProductTable = () => {
 
             if (startDate || endDate) {
                 filtered = filtered.filter((item) => {
-                    const itemDate = new Date(item.manufacturingDate || item.expirationDate).getTime();
-                    const start = startDate ? new Date(startDate).getTime() : -Infinity;
-                    const end = endDate ? new Date(endDate).getTime() : Infinity;
+                    const itemDate = new Date(item.manufacturingDate).getTime();
+                    const start = startDate ? new Date(startDate).setHours(0, 0, 0, 0) : -Infinity;
+                    const end = endDate ? new Date(endDate).setHours(23, 59, 59, 999) : Infinity;
                     return itemDate >= start && itemDate <= end;
+                });
+            }
+
+            if (expirationFilter !== "all") {
+                const today = new Date();
+                const fifteenDaysFromNow = new Date(today);
+                fifteenDaysFromNow.setDate(today.getDate() + 15);
+
+                filtered = filtered.filter((item) => {
+                    const expirationDate = new Date(item.expirationDate);
+                    if (expirationFilter === "expired") {
+                        return expirationDate < today;
+                    } else if (expirationFilter === "soon") {
+                        return expirationDate >= today && expirationDate <= fifteenDaysFromNow;
+                    }
+                    return true;
                 });
             }
         }
 
         setFilteredData(filtered);
-        setCurrent(1); // Reset về trang 1 sau khi lọc
-    }, [searchText, searchBarcode, startDate, endDate, dataProduct]);
+        setCurrent(1);
+    }, [searchText, searchBarcode, startDate, endDate, expirationFilter, dataProduct]);
 
     useEffect(() => {
         loadAllProducts();
@@ -226,7 +243,6 @@ const ProductTable = () => {
             setPageSize(pagination.pageSize);
             setCurrent(1);
         }
-        // Không cần gọi loadAllProducts lại, vì dữ liệu đã được tích lũy
     };
 
     return (
@@ -246,6 +262,8 @@ const ProductTable = () => {
                 setStartDate={setStartDate}
                 endDate={endDate}
                 setEndDate={setEndDate}
+                expirationFilter={expirationFilter}
+                setExpirationFilter={setExpirationFilter}
             />
             <ProductTableContent
                 filteredData={filteredData}
