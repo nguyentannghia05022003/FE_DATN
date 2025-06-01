@@ -1,178 +1,177 @@
 .resume-container {
-    padding: 30px;
-    background: linear-gradient(to bottom right, #e6f0fa, #f7f7f7);
+    padding: 24px;
+    background: #f8fafc;
     min-height: 100vh;
     position: relative;
 }
 
 .total-income-container {
     position: absolute;
-    top: 30px;
-    right: 30px;
-    z-index: 10;
+    top: 24px;
+    right: 24px;
 }
 
 .total-income-box {
-    background-color: #4a90e2;
+    background: #2563eb;
     color: #fff;
-    padding: 10px 20px;
-    border-radius: 8px;
-    font-weight: 600;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-weight: 500;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .resume-action-space {
-    margin-bottom: 20px;
-    margin-top: 60px;
+    margin-bottom: 16px;
+    margin-top: 48px;
     display: flex;
     flex-wrap: wrap;
     gap: 8px;
+    align-items: center;
 }
 
 .resume-add-btn {
-    background-color: #4a90e2;
-    border-color: #4a90e2;
-    border-radius: 8px;
-    padding: 8px 16px;
+    background: #2563eb;
+    border-color: #2563eb;
+    border-radius: 6px;
+    padding: 6px 12px;
     font-weight: 500;
-    transition: all 0.3s ease;
 }
 
 .resume-add-btn:hover {
-    background-color: #357abd;
-    border-color: #357abd;
+    background: #1d4ed8;
+    border-color: #1d4ed8;
 }
 
 .resume-sort-btn {
-    background-color: #a0aec0;
-    border-color: #a0aec0;
+    background: #6b7280;
+    border-color: #6b7280;
     color: #fff;
-    border-radius: 8px;
-    padding: 8px 16px;
+    border-radius: 6px;
+    padding: 6px 12px;
     font-weight: 500;
-    transition: all 0.3s ease;
 }
 
 .resume-sort-btn:hover {
-    background-color: #718096;
-    border-color: #718096;
+    background: #4b5563;
+    border-color: #4b5563;
 }
 
 .resume-date-picker {
-    border-radius: 8px;
+    border-radius: 6px;
     border: 1px solid #d1d5db;
-    padding: 8px;
-    transition: all 0.3s ease;
-    width: 200px;
+    padding: 6px;
+    width: 180px;
 }
 
 .resume-date-picker:hover,
 .resume-date-picker:focus {
-    border-color: #4a90e2;
-    box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.1);
+    border-color: #2563eb;
+    box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.1);
 }
 
 .resume-refresh-btn {
-    background-color: #ecc94b;
-    border-color: #ecc94b;
+    background: #f59e0b;
+    border-color: #f59e0b;
     color: #fff;
-    border-radius: 8px;
-    padding: 8px 16px;
+    border-radius: 6px;
+    padding: 6px 12px;
     font-weight: 500;
-    transition: all 0.3s ease;
-    z-index: 5;
 }
 
 .resume-refresh-btn:hover {
-    background-color: #d69e2e;
-    border-color: #d69e2e;
+    background: #d97706;
+    border-color: #d97706;
+}
+
+.resume-delete-all-btn {
+    border-radius: 6px;
 }
 
 .resume-table {
-    border-radius: 12px;
+    border-radius: 8px;
     overflow: hidden;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-    background-color: #fff;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    background: #fff;
 }
 
 .resume-table .ant-table-thead>tr>th {
-    background-color: #edf2f7;
-    color: #4a5568;
+    background: #f1f5f9;
+    color: #1f2937;
     font-weight: 600;
     text-align: center;
-    padding: 12px;
-    border-bottom: 2px solid #d1d5db;
+    padding: 10px;
+    border-bottom: 1px solid #e5e7eb;
+    white-space: nowrap;
+    /* Ngăn wrap tiêu đề cột */
 }
 
 .resume-table .ant-table-tbody>tr>td {
     text-align: center;
-    padding: 12px;
-    border-bottom: 1px solid #e2e8f0;
+    padding: 10px;
+    border-bottom: 1px solid #f1f5f9;
+    white-space: nowrap;
+    /* Ngăn wrap nội dung cột */
 }
 
 .table-row-light {
-    background-color: #ffffff;
-    transition: background-color 0.2s;
+    background: #ffffff;
 }
 
 .table-row-light:hover {
-    background-color: #f1f5f9;
+    background: #f8fafc;
 }
 
 .table-row-dark {
-    background-color: #f9fafb;
-    transition: background-color 0.2s;
+    background: #f9fafb;
 }
 
 .table-row-dark:hover {
-    background-color: #e2e8f0;
+    background: #f1f5f9;
 }
 
 .resume-sub-table {
-    margin: 10px 0;
-    border: 1px solid #e2e8f0;
-    border-radius: 8px;
+    margin: 8px 0;
+    border: 1px solid #e5e7eb;
+    border-radius: 6px;
 }
 
 .resume-sub-table .ant-table-thead>tr>th {
-    background-color: #f7fafc;
-    color: #718096;
+    background: #e5e7eb;
+    color: #4b5563;
     font-weight: 500;
-    font-size: 14px;
-    padding: 8px;
+    font-size: 13px;
+    padding: 6px;
 }
 
 .resume-sub-table .ant-table-tbody>tr>td {
-    padding: 8px;
-    font-size: 14px;
+    padding: 6px;
+    font-size: 13px;
 }
 
 .resume-toggle-btn {
-    background-color: #68d391;
-    border-color: #68d391;
+    background: #10b981;
+    border-color: #10b981;
     color: #fff;
-    border-radius: 8px;
-    transition: all 0.3s ease;
+    border-radius: 6px;
 }
 
 .resume-toggle-btn:hover {
-    background-color: #4caf73;
-    border-color: #4caf73;
+    background: #059669;
+    border-color: #059669;
 }
 
 .resume-delete-btn {
-    border-radius: 8px;
-    transition: all 0.3s ease;
+    border-radius: 6px;
 }
 
 .resume-delete-btn:hover {
-    background-color: #e53e3e;
+    background: #dc2626;
     color: #fff;
-    border-color: #e53e3e;
+    border-color: #dc2626;
 }
 
 .resume-pagination {
-    margin-top: 20px;
+    margin-top: 16px;
     text-align: right;
 }
 
@@ -181,8 +180,8 @@
 }
 
 .resume-pagination .ant-pagination-item-active {
-    background-color: #4a90e2;
-    border-color: #4a90e2;
+    background: #2563eb;
+    border-color: #2563eb;
 }
 
 .resume-pagination .ant-pagination-item-active a {
@@ -190,13 +189,13 @@
 }
 
 .resume-modal .ant-modal-content {
-    border-radius: 12px;
-    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
 .resume-modal .ant-modal-header {
-    border-radius: 12px 12px 0 0;
-    background-color: #4a90e2;
+    border-radius: 8px 8px 0 0;
+    background: #2563eb;
     color: #fff;
 }
 
@@ -206,25 +205,26 @@
 }
 
 .resume-form .ant-form-item {
-    margin-bottom: 16px;
+    margin-bottom: 12px;
 }
 
 .resume-form-space {
     display: flex;
-    margin-bottom: 12px;
+    margin-bottom: 8px;
+    flex-wrap: wrap;
+    gap: 8px;
 }
 
 .resume-input,
 .resume-input-number {
-    border-radius: 8px;
+    border-radius: 6px;
     border: 1px solid #d1d5db;
-    transition: all 0.3s ease;
 }
 
 .resume-input:focus,
 .resume-input-number:focus {
-    border-color: #4a90e2;
-    box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.1);
+    border-color: #2563eb;
+    box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.1);
 }
 
 .resume-input-number {
@@ -232,42 +232,45 @@
 }
 
 .resume-add-item-btn {
-    border: 1px dashed #4a90e2;
-    color: #4a90e2;
-    border-radius: 8px;
-    margin-top: 10px;
-    transition: all 0.3s ease;
+    border: 1px dashed #2563eb;
+    color: #2563eb;
+    border-radius: 6px;
+    margin-top: 8px;
 }
 
 .resume-add-item-btn:hover {
-    background-color: #edf2f7;
-    border-color: #357abd;
-    color: #357abd;
+    background: #f1f5f9;
+    border-color: #1d4ed8;
+    color: #1d4ed8;
 }
 
 .resume-total-price {
     width: 100%;
-    border-radius: 8px;
+    border-radius: 6px;
     border: 1px solid #d1d5db;
-    transition: all 0.3s ease;
 }
 
 .resume-total-price:focus {
-    border-color: #4a90e2;
-    box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.1);
+    border-color: #2563eb;
+    box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.1);
 }
 
 .resume-delete-item-btn {
-    border-radius: 8px;
-    transition: all 0.3s ease;
+    border-radius: 6px;
 }
 
 .resume-delete-item-btn:hover {
-    background-color: #e53e3e;
+    background: #dc2626;
     color: #fff;
-    border-color: #e53e3e;
+    border-color: #dc2626;
 }
 
 .resume-picker-mode {
     margin-right: 8px;
 }
+
+.resume-detail-container {
+    margin-top: 8px;
+}
+
+/* Xóa resume-detail-info vì không còn hiển thị thông tin ở đây */

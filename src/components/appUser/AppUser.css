@@ -1,0 +1,142 @@
+/* Container chính */
+.app-user-container {
+    padding: 20px;
+    width: 100%;
+    box-sizing: border-box;
+    /* Đảm bảo padding không làm tràn */
+}
+
+/* Space chứa các button hành động */
+.app-user-action-space {
+    margin-bottom: 16px;
+    display: flex;
+    gap: 10px;
+}
+
+/* Bảng */
+.app-user-table {
+    width: 100%;
+    overflow-x: auto;
+    /* Thêm thanh cuộn ngang nếu bảng tràn */
+    border: 1px solid #f0f0f0;
+    border-radius: 4px;
+}
+
+/* Dòng trong bảng */
+.table-row-light {
+    background-color: #fafafa;
+}
+
+.table-row-dark {
+    background-color: #ffffff;
+}
+
+/* Modal */
+.app-user-modal {
+    max-width: 600px;
+    /* Giới hạn chiều rộng modal */
+    width: 100%;
+}
+
+/* Form trong modal */
+.app-user-form {
+    max-height: 60vh;
+    /* Giới hạn chiều cao form */
+    overflow-y: auto;
+    /* Thêm thanh cuộn dọc nếu form quá dài */
+    padding-right: 10px;
+    /* Khoảng cách để tránh tràn thanh cuộn */
+}
+
+/* Input trong form */
+.app-user-input {
+    width: 100%;
+    box-sizing: border-box;
+}
+
+/* Button chỉnh sửa */
+.app-user-edit-btn {
+    background-color: #1890ff;
+    color: white;
+    border: none;
+}
+
+.app-user-edit-btn:hover {
+    background-color: #40a9ff;
+}
+
+/* Button xóa */
+.app-user-delete-btn {
+    border: none;
+}
+
+/* Button xem chi tiết giao dịch */
+.app-user-resume-btn {
+    background-color: #52c41a;
+    color: white;
+    border: none;
+}
+
+.app-user-resume-btn:hover {
+    background-color: #73d13d;
+}
+
+/* Button thêm người dùng */
+.app-user-add-btn {
+    background-color: #1890ff;
+    border: none;
+}
+
+.app-user-add-btn:hover {
+    background-color: #40a9ff;
+}
+
+/* Button làm mới */
+.app-user-refresh-btn {
+    background-color: #fa8c16;
+    color: white;
+    border: none;
+}
+
+.app-user-refresh-btn:hover {
+    background-color: #ffa940;
+}
+
+/* Pagination */
+.app-user-pagination {
+    margin-top: 16px;
+    text-align: right;
+    width: 100%;
+    overflow-x: auto;
+    /* Đảm bảo pagination không tràn */
+}
+
+/* Nội dung trong modal chi tiết giao dịch */
+.app-user-modal .ant-collapse-content-box {
+    word-break: break-word;
+    /* Đảm bảo nội dung dài (như email, tên sản phẩm) không tràn */
+    max-height: 50vh;
+    /* Giới hạn chiều cao nội dung */
+    overflow-y: auto;
+    /* Thêm thanh cuộn dọc nếu nội dung dài */
+}
+
+/* Responsive cho màn hình nhỏ */
+@media (max-width: 768px) {
+    .app-user-container {
+        padding: 10px;
+    }
+
+    .app-user-modal {
+        max-width: 90%;
+    }
+
+    .app-user-action-space {
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .app-user-action-space .ant-btn {
+        width: 100%;
+    }
+}

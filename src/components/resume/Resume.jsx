@@ -50,12 +50,11 @@ const Resume = ({
     const [selectedDate, setSelectedDate] = useState(null);
     const [totalIncome, setTotalIncome] = useState(0);
     const [pickerMode, setPickerMode] = useState("date");
-    const [searchOrderCode, setSearchOrderCode] = useState(""); // State cho mã đơn hàng tìm kiếm
+    const [searchOrderCode, setSearchOrderCode] = useState("");
     const [form] = Form.useForm();
 
     useEffect(() => {
         const resumeList = Array.isArray(resumes) ? resumes : [];
-        console.log("Resumes (paginated) received:", resumeList);
         if (!selectedDate && !sortOrder.field) {
             const sortedList = [...resumeList].sort((a, b) => {
                 const dateA = new Date(a.createdAt).getTime();
@@ -70,7 +69,6 @@ const Resume = ({
 
     useEffect(() => {
         const fullResumeList = Array.isArray(fullResumes) ? [...fullResumes] : [];
-        console.log("Full resumes received:", fullResumeList);
         const sortedFullList = fullResumeList.sort((a, b) => {
             const dateA = new Date(a.createdAt).getTime();
             const dateB = new Date(b.createdAt).getTime();
@@ -83,15 +81,10 @@ const Resume = ({
     useEffect(() => {
         let resumeList = Array.isArray(fullResumes) ? [...fullResumes] : [];
 
-        // Lọc theo ngày/tháng/năm nếu có selectedDate
         if (selectedDate) {
-            console.log("Picker Mode:", pickerMode);
-            console.log("Selected Date:", selectedDate.format("DD/MM/YYYY HH:mm:ss"));
-
             resumeList = resumeList.filter((resume) => {
                 const resumeDate = dayjs(resume.createdAt);
                 let isMatch = false;
-
                 if (pickerMode === "date") {
                     isMatch = resumeDate.startOf("day").isSame(selectedDate.startOf("day"), "day");
                 } else if (pickerMode === "week") {
@@ -106,19 +99,13 @@ const Resume = ({
                 } else if (pickerMode === "year") {
                     isMatch = resumeDate.startOf("year").isSame(selectedDate.startOf("year"), "year");
                 }
-
-                console.log(
-                    `Resume ID: ${resume._id}, Resume Date: ${resumeDate.format(
-                        "DD/MM/YYYY HH:mm:ss"
-                    )}, Match: ${isMatch}`
-                );
                 return isMatch;
             });
 
             if (resumeList.length === 0) {
                 notification.warning({
                     message: "Không tìm thấy",
-                    description: `Không có resume nào trong ${pickerMode === "date"
+                    description: `Không có đơn hàng nào trong ${pickerMode === "date"
                         ? "ngày"
                         : pickerMode === "week"
                             ? "tuần"
@@ -130,7 +117,6 @@ const Resume = ({
             }
         }
 
-        // Lọc theo mã đơn hàng nếu có giá trị tìm kiếm
         if (searchOrderCode) {
             resumeList = resumeList.filter((resume) =>
                 resume.orderCode?.toLowerCase().includes(searchOrderCode.toLowerCase())
@@ -138,12 +124,11 @@ const Resume = ({
             if (resumeList.length === 0) {
                 notification.warning({
                     message: "Không tìm thấy",
-                    description: `Không có resume nào khớp với mã đơn hàng "${searchOrderCode}".`,
+                    description: `Không có đơn hàng nào khớp với mã đơn hàng "${searchOrderCode}".`,
                 });
             }
         }
 
-        // Sắp xếp theo sortOrder
         if (sortOrder.field) {
             resumeList = resumeList.sort((a, b) => {
                 if (sortOrder.field === "createdAt") {
@@ -178,14 +163,28 @@ const Resume = ({
     };
 
     const itemColumns = [
-        { title: "Mã sản phẩm", dataIndex: "barCode", key: "barCode" },
-        { title: "Tên sản phẩm", dataIndex: "name", key: "name" },
-        { title: "Số lượng", dataIndex: "quantityPurchased", key: "quantityPurchased" },
+        {
+            title: "Mã sản phẩm",
+            dataIndex: "barCode",
+            key: "barCode",
+            render: (_, item) => item.barCode || item.product?.barCode,
+        },
+        {
+            title: "Tên sản phẩm",
+            dataIndex: "name",
+            key: "name",
+            render: (_, item) => item.name || item.product?.name,
+        },
+        {
+            title: "Số lượng",
+            dataIndex: "quantityPurchased",
+            key: "quantityPurchased",
+        },
         {
             title: "Giá",
             dataIndex: "price",
             key: "price",
-            render: (price) => `${price.toLocaleString("vi-VN")} VNĐ`,
+            render: (_, item) => (item.price || item.product?.price)?.toLocaleString("vi-VN") + " VNĐ",
         },
         {
             title: "Tổng giá sản phẩm",
@@ -212,7 +211,7 @@ const Resume = ({
         setExpandedRows({});
         setSelectedDate(null);
         setPickerMode("date");
-        setSearchOrderCode(""); // Đặt lại giá trị tìm kiếm
+        setSearchOrderCode("");
     };
 
     const handlePickerModeChange = (value) => {
@@ -232,8 +231,6 @@ const Resume = ({
             } else if (pickerMode === "year") {
                 localDate = dayjs(dateString, "YYYY").startOf("year");
             }
-            console.log(`Selected ${pickerMode}:`, dateString);
-            console.log(`Local ${pickerMode} Set:`, localDate.format("DD/MM/YYYY HH:mm:ss"));
             setSelectedDate(localDate);
         } else {
             setSelectedDate(null);
@@ -248,14 +245,14 @@ const Resume = ({
         if (!selectedDate) {
             notification.warning({
                 message: "Chưa chọn thời gian",
-                description: "Vui lòng chọn ngày, tuần, tháng hoặc năm để xóa tất cả resume.",
+                description: "Vui lòng chọn ngày, tuần, tháng hoặc năm để xóa tất cả đơn hàng.",
             });
             return;
         }
 
         Modal.confirm({
             title: "Xác nhận xóa tất cả",
-            content: `Bạn có chắc chắn muốn xóa tất cả resume trong ${pickerMode === "date"
+            content: `Bạn có chắc chắn muốn xóa tất cả đơn hàng trong ${pickerMode === "date"
                 ? "ngày"
                 : pickerMode === "week"
                     ? "tuần"
@@ -270,7 +267,6 @@ const Resume = ({
                     const resumesToDelete = filteredResumes.filter((resume) => {
                         const resumeDate = dayjs(resume.createdAt);
                         let isMatch = false;
-
                         if (pickerMode === "date") {
                             isMatch = resumeDate.startOf("day").isSame(selectedDate.startOf("day"), "day");
                         } else if (pickerMode === "week") {
@@ -285,14 +281,13 @@ const Resume = ({
                         } else if (pickerMode === "year") {
                             isMatch = resumeDate.startOf("year").isSame(selectedDate.startOf("year"), "year");
                         }
-
                         return isMatch;
                     });
 
                     if (resumesToDelete.length === 0) {
                         notification.info({
-                            message: "Không có resume",
-                            description: "Không có resume nào để xóa trong khoảng thời gian đã chọn.",
+                            message: "Không có đơn hàng",
+                            description: "Không có đơn hàng nào để xóa trong khoảng thời gian đã chọn.",
                         });
                         return;
                     }
@@ -300,13 +295,13 @@ const Resume = ({
                     await Promise.all(resumesToDelete.map((resume) => onDeleteResume(resume._id)));
                     notification.success({
                         message: "Thành công",
-                        description: `Đã xóa ${resumesToDelete.length} resume thành công!`,
+                        description: `Đã xóa ${resumesToDelete.length} đơn hàng thành công!`,
                     });
                     handleRefresh();
                 } catch (error) {
                     notification.error({
                         message: "Lỗi",
-                        description: error.response?.data?.message || "Không thể xóa các resume.",
+                        description: error.response?.data?.message || "Không thể xóa các đơn hàng.",
                     });
                 }
             },
@@ -320,33 +315,38 @@ const Resume = ({
             render: (text, record, index) => (currentPage - 1) * pageSize + index + 1,
         },
         { title: "ID", dataIndex: "_id", key: "_id" },
-        { title: "Mã đơn hàng", dataIndex: "orderCode", key: "orderCode" }, // Thêm cột Mã đơn hàng
+        { title: "Mã đơn hàng", dataIndex: "orderCode", key: "orderCode" },
         {
-            title: "Chi tiết sản phẩm",
-            key: "item",
-            render: (record) => (
-                <div>
-                    <Button
-                        icon={<EyeOutlined />}
-                        onClick={() => toggleRow(record._id)}
-                        className="resume-toggle-btn"
-                    >
-                        {expandedRows[record._id] ? "Ẩn chi tiết" : "Nhấn để xem chi tiết"}
-                    </Button>
-                    {expandedRows[record._id] && (
-                        <Table
-                            columns={itemColumns}
-                            dataSource={record.items || []}
-                            rowKey="_id"
-                            pagination={false}
-                            className="resume-sub-table"
-                        />
-                    )}
-                </div>
-            ),
+            title: "Tên khách hàng",
+            dataIndex: "customerName",
+            key: "customerName",
+            render: (customerName) => customerName || "Không có",
         },
         {
-            title: "Tổng giá",
+            title: "Điểm sử dụng",
+            dataIndex: "usedPoints",
+            key: "usedPoints",
+            render: (usedPoints) => usedPoints || 0,
+        },
+        {
+            title: "Giảm giá từ điểm",
+            key: "discount",
+            render: (record) => {
+                const discount = (record.usedPoints || 0) * 1000;
+                return `${discount.toLocaleString("vi-VN")} VNĐ`;
+            },
+        },
+        {
+            title: "Tổng giá ban đầu",
+            key: "originalPrice",
+            render: (record) => {
+                const discount = (record.usedPoints || 0) * 1000;
+                const originalPrice = (record.totalPrice || 0) + discount;
+                return `${originalPrice.toLocaleString("vi-VN")} VNĐ`;
+            },
+        },
+        {
+            title: "Tổng giá sau giảm",
             dataIndex: "totalPrice",
             key: "totalPrice",
             render: (totalPrice) => `${totalPrice?.toLocaleString("vi-VN") || 0} VNĐ`,
@@ -356,6 +356,35 @@ const Resume = ({
             dataIndex: "createdAt",
             key: "createdAt",
             render: (date) => (date ? dayjs(date).format("DD/MM/YYYY HH:mm") : "N/A"),
+        },
+        {
+            title: "Chi tiết sản phẩm",
+            key: "item",
+            render: (record) => {
+                const items = record.items || record.products || [];
+                return (
+                    <div>
+                        <Button
+                            icon={<EyeOutlined />}
+                            onClick={() => toggleRow(record._id)}
+                            className="resume-toggle-btn"
+                        >
+                            {expandedRows[record._id] ? "Ẩn chi tiết" : "Xem chi tiết"}
+                        </Button>
+                        {expandedRows[record._id] && (
+                            <div className="resume-detail-container">
+                                <Table
+                                    columns={itemColumns}
+                                    dataSource={items}
+                                    rowKey={(item) => item._id || item.product?._id}
+                                    pagination={false}
+                                    className="resume-sub-table"
+                                />
+                            </div>
+                        )}
+                    </div>
+                );
+            },
         },
         {
             title: "Hành động",
@@ -381,12 +410,12 @@ const Resume = ({
             setIsModalVisible(false);
             notification.success({
                 message: "Thành công",
-                description: "Tạo resume thành công!",
+                description: "Tạo đơn hàng thành công!",
             });
         } catch (error) {
             notification.error({
                 message: "Lỗi",
-                description: error.response?.data?.message || "Không thể tạo resume.",
+                description: error.response?.data?.message || "Không thể tạo đơn hàng.",
             });
         }
     };
@@ -396,12 +425,12 @@ const Resume = ({
             await onDeleteResume(id);
             notification.success({
                 message: "Thành công",
-                description: "Xóa resume thành công!",
+                description: "Xóa đơn hàng thành công!",
             });
         } catch (error) {
             notification.error({
                 message: "Lỗi",
-                description: error.response?.data?.message || "Không thể xóa resume.",
+                description: error.response?.data?.message || "Không thể xóa đơn hàng.",
             });
         }
     };
@@ -420,7 +449,7 @@ const Resume = ({
                     onClick={() => setIsModalVisible(true)}
                     className="resume-add-btn"
                 >
-                    Thêm Resume
+                    Thêm đơn hàng
                 </Button>
                 <Button
                     icon={
@@ -529,7 +558,7 @@ const Resume = ({
                 className="resume-pagination"
             />
             <Modal
-                title="Thêm Resume Mới"
+                title="Thêm đơn hàng mới"
                 open={isModalVisible}
                 onOk={handleCreate}
                 onCancel={() => {
@@ -541,6 +570,23 @@ const Resume = ({
                 className="resume-modal"
             >
                 <Form form={form} layout="vertical" className="resume-form">
+                    <Form.Item
+                        name="orderCode"
+                        label="Mã đơn hàng"
+                        rules={[{ required: true, message: "Nhập mã đơn hàng" }]}
+                    >
+                        <Input placeholder="Mã đơn hàng" className="resume-input" />
+                    </Form.Item>
+                    <Form.Item name="customerName" label="Tên khách hàng">
+                        <Input placeholder="Tên khách hàng (không bắt buộc)" className="resume-input" />
+                    </Form.Item>
+                    <Form.Item name="usedPoints" label="Điểm sử dụng">
+                        <InputNumber
+                            min={0}
+                            placeholder="Điểm sử dụng (không bắt buộc)"
+                            className="resume-input-number"
+                        />
+                    </Form.Item>
                     <Form.List name="items">
                         {(fields, { add, remove }) => (
                             <>
