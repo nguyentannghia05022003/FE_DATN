@@ -109,19 +109,19 @@ const AppUser = ({
     const handleViewResumes = async (phone) => {
         try {
             const response = await fetchUserResumesAPI(phone);
-            console.log("Full API Response:", response);
+            //console.log("Full API Response:", response);
             const resumes = response?.data?.resumes || [];
-            console.log("Selected Resumes before set:", resumes);
-            if (resumes.length === 0) {
-                notification.warning({
-                    message: "Cảnh báo",
-                    description: `Không tìm thấy giao dịch cho số điện thoại ${phone}. Vui lòng kiểm tra backend.`,
-                });
-            }
+            // console.log("Selected Resumes before set:", resumes);
+            // if (resumes.length === 0) {
+            //     notification.warning({
+            //         message: "Cảnh báo",
+            //         description: `Không tìm thấy giao dịch cho số điện thoại ${phone}. Vui lòng kiểm tra backend.`,
+            //     });
+            // }
             setSelectedResumes(resumes);
             setIsResumeModalVisible(true);
         } catch (error) {
-            console.error("Error fetching resumes:", error);
+            //console.error("Error fetching resumes:", error);
             notification.error({
                 message: "Lỗi",
                 description: error.response?.data?.message || "Không thể lấy lịch sử giao dịch.",
@@ -313,7 +313,7 @@ const AppUser = ({
                 width={800}
                 className="app-user-modal"
             >
-                {console.log("Rendering with selectedResumes:", selectedResumes)}
+                {/* {console.log("Rendering with selectedResumes:", selectedResumes)} */}
                 {selectedResumes.length === 0 ? (
                     <p>Không có giao dịch nào để hiển thị.</p>
                 ) : (

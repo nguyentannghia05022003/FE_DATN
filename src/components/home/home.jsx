@@ -142,7 +142,7 @@ function ExpiringProducts({ user }) {
                 setDataSource(expiringProducts);
                 setLoading(false);
             }).catch((error) => {
-                console.error("Error fetching products:", error);
+                //console.error("Error fetching products:", error);
                 setDataSource([]);
                 setLoading(false);
                 notification.error({
@@ -179,10 +179,10 @@ function DashboardChart({ user }) {
     const [timePeriod, setTimePeriod] = useState("day");
 
     useEffect(() => {
-        console.log("User changed in DashboardChart:", user);
+        // console.log("User changed in DashboardChart:", user);
         if (!user || !user._id) {
             setRevenueData({ labels: [], datasets: [] });
-            console.log("Reset revenueData to empty:", { labels: [], datasets: [] });
+            //console.log("Reset revenueData to empty:", { labels: [], datasets: [] });
         } else {
             const fetchData = async () => {
                 try {
@@ -283,7 +283,7 @@ function DashboardChart({ user }) {
                         ],
                     });
                 } catch (error) {
-                    console.error("Error fetching data:", error);
+                    //console.error("Error fetching data:", error);
                     notification.error({
                         message: "Lỗi",
                         description: "Không thể lấy dữ liệu doanh thu. Vui lòng kiểm tra API.",
