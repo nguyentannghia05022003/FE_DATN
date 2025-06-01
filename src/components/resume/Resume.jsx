@@ -43,7 +43,8 @@ const Resume = ({
     onRefresh,
 }) => {
     const [isModalVisible, setIsModalVisible] = useState(false);
-    const [expandedRows, setExpandedRows] = useState({});
+    const [detailModalVisible, setDetailModalVisible] = useState(false); // State cho modal chi tiết
+    const [selectedResume, setSelectedResume] = useState(null); // Lưu đơn hàng được chọn để xem chi tiết
     const [sortOrder, setSortOrder] = useState({ field: "createdAt", order: "desc" });
     const [sortedResumes, setSortedResumes] = useState([]);
     const [filteredResumes, setFilteredResumes] = useState([]);
@@ -167,6 +168,7 @@ const Resume = ({
             title: "Mã sản phẩm",
             dataIndex: "barCode",
             key: "barCode",
+            className: "no-wrap",
             render: (_, item) => item.barCode || item.product?.barCode,
         },
         {
@@ -179,23 +181,27 @@ const Resume = ({
             title: "Số lượng",
             dataIndex: "quantityPurchased",
             key: "quantityPurchased",
+            className: "no-wrap",
         },
         {
             title: "Giá",
             dataIndex: "price",
             key: "price",
+            className: "no-wrap",
             render: (_, item) => (item.price || item.product?.price)?.toLocaleString("vi-VN") + " VNĐ",
         },
         {
             title: "Tổng giá sản phẩm",
             dataIndex: "productTotalPrice",
             key: "productTotalPrice",
+            className: "no-wrap",
             render: (productTotalPrice) => `${productTotalPrice.toLocaleString("vi-VN")} VNĐ`,
         },
     ];
 
-    const toggleRow = (id) => {
-        setExpandedRows((prev) => ({ ...prev, [id]: !prev[id] }));
+    const toggleDetailModal = (record) => {
+        setSelectedResume(record);
+        setDetailModalVisible(true);
     };
 
     const handleSort = (field) => {
@@ -208,7 +214,6 @@ const Resume = ({
             onRefresh();
         }
         setSortOrder({ field: "createdAt", order: "desc" });
-        setExpandedRows({});
         setSelectedDate(null);
         setPickerMode("date");
         setSearchOrderCode("");
@@ -360,31 +365,15 @@ const Resume = ({
         {
             title: "Chi tiết sản phẩm",
             key: "item",
-            render: (record) => {
-                const items = record.items || record.products || [];
-                return (
-                    <div>
-                        <Button
-                            icon={<EyeOutlined />}
-                            onClick={() => toggleRow(record._id)}
-                            className="resume-toggle-btn"
-                        >
-                            {expandedRows[record._id] ? "Ẩn chi tiết" : "Xem chi tiết"}
-                        </Button>
-                        {expandedRows[record._id] && (
-                            <div className="resume-detail-container">
-                                <Table
-                                    columns={itemColumns}
-                                    dataSource={items}
-                                    rowKey={(item) => item._id || item.product?._id}
-                                    pagination={false}
-                                    className="resume-sub-table"
-                                />
-                            </div>
-                        )}
-                    </div>
-                );
-            },
+            render: (record) => (
+                <Button
+                    icon={<EyeOutlined />}
+                    onClick={() => toggleDetailModal(record)}
+                    className="resume-toggle-btn"
+                >
+                    Xem chi tiết
+                </Button>
+            ),
         },
         {
             title: "Hành động",
@@ -671,6 +660,24 @@ const Resume = ({
                         />
                     </Form.Item>
                 </Form>
+            </Modal>
+            <Modal
+                title="Chi tiết sản phẩm"
+                open={detailModalVisible}
+                onCancel={() => setDetailModalVisible(false)}
+                footer={null}
+                width={800}
+                className="resume-modal"
+            >
+                {selectedResume && (
+                    <Table
+                        columns={itemColumns}
+                        dataSource={selectedResume.items || selectedResume.products || []}
+                        rowKey={(item) => item._id || item.product?._id}
+                        pagination={false}
+                        className="resume-sub-table"
+                    />
+                )}
             </Modal>
         </div>
     );

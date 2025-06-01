@@ -92,6 +92,8 @@
     overflow: hidden;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
     background: #fff;
+    overflow-x: auto;
+    /* Thêm cuộn ngang cho bảng chính */
 }
 
 .resume-table .ant-table-thead>tr>th {
@@ -102,15 +104,16 @@
     padding: 10px;
     border-bottom: 1px solid #e5e7eb;
     white-space: nowrap;
-    /* Ngăn wrap tiêu đề cột */
 }
 
 .resume-table .ant-table-tbody>tr>td {
     text-align: center;
     padding: 10px;
     border-bottom: 1px solid #f1f5f9;
-    white-space: nowrap;
-    /* Ngăn wrap nội dung cột */
+    white-space: normal;
+    /* Cho phép xuống dòng */
+    word-break: break-word;
+    /* Đảm bảo từ dài không làm tràn */
 }
 
 .table-row-light {
@@ -133,6 +136,10 @@
     margin: 8px 0;
     border: 1px solid #e5e7eb;
     border-radius: 6px;
+    overflow-x: auto;
+    /* Thêm cuộn ngang cho bảng phụ */
+    max-width: 100%;
+    /* Đảm bảo không vượt quá container cha */
 }
 
 .resume-sub-table .ant-table-thead>tr>th {
@@ -146,6 +153,15 @@
 .resume-sub-table .ant-table-tbody>tr>td {
     padding: 6px;
     font-size: 13px;
+    white-space: normal;
+    /* Cho phép xuống dòng */
+    word-break: break-word;
+    /* Đảm bảo từ dài không làm tràn */
+}
+
+.resume-sub-table .ant-table-tbody>tr>td.no-wrap {
+    white-space: nowrap;
+    /* Giữ nguyên không xuống dòng cho cột cụ thể */
 }
 
 .resume-toggle-btn {
@@ -271,6 +287,21 @@
 
 .resume-detail-container {
     margin-top: 8px;
+    max-width: 100%;
+    /* Đảm bảo không vượt quá container cha */
+    overflow-x: auto;
+    /* Thêm cuộn ngang nếu cần */
 }
 
-/* Xóa resume-detail-info vì không còn hiển thị thông tin ở đây */
+@media (max-width: 768px) {
+
+    .resume-sub-table .ant-table-thead>tr>th,
+    .resume-sub-table .ant-table-tbody>tr>td {
+        padding: 4px;
+        font-size: 12px;
+    }
+
+    .resume-table {
+        overflow-x: auto;
+    }
+}
