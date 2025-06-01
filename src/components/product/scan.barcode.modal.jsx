@@ -39,7 +39,7 @@ const ScanBarcodeModal = (props) => {
                     stopScanning();
                 }
                 if (error && !error.message.includes("No MultiFormat Readers were able to detect the code")) {
-                    console.error(error);
+                    // console.error(error);
                 }
             });
         } catch (error) {

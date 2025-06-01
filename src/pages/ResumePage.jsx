@@ -25,10 +25,10 @@ const ResumePage = () => {
             const fullResumeList = Array.isArray(fullResponse?.data?.result) ? fullResponse.data.result : [];
             setFullResumes(fullResumeList);
 
-            console.log("API Response (Paginated):", response);
-            console.log("API Response (Full):", fullResponse);
+            // console.log("API Response (Paginated):", response);
+            // console.log("API Response (Full):", fullResponse);
         } catch (error) {
-            console.error("Error fetching resumes:", error);
+            // console.error("Error fetching resumes:", error);
             notification.error({
                 message: "Lỗi",
                 description: error.response?.data?.message || "Không thể lấy danh sách resume.",

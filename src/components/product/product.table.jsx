@@ -115,7 +115,7 @@ const ProductTable = () => {
                 const normalizedSearchBarcode = removeDiacritics(searchBarcode);
                 filtered = filtered.filter((item) => {
                     if (!item.barCode) {
-                        console.warn(`Sản phẩm với ID ${item._id} không có mã barcode`);
+                        // console.warn(`Sản phẩm với ID ${item._id} không có mã barcode`);
                         return false;
                     }
                     const normalizedBarcode = removeDiacritics(item.barCode);

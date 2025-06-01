@@ -88,7 +88,7 @@ const CreateProductUncontrolled = (props) => {
             }
 
             // Log dữ liệu trước khi gửi lên API
-            console.log("Data sent to createProductAPI:", ProductData);
+            // console.log("Data sent to createProductAPI:", ProductData);
 
             // Gửi dữ liệu dưới dạng object
             const resProduct = await createProductAPI(ProductData);

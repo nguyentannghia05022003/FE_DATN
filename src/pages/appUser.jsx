@@ -29,7 +29,7 @@ const AppUserPage = () => {
             const fullAppUserList = Array.isArray(fullResponse?.data?.result) ? fullResponse.data.result : [];
             setFullAppUsers(fullAppUserList);
         } catch (error) {
-            console.error("Error fetching app users:", error);
+            // console.error("Error fetching app users:", error);
             notification.error({
                 message: "Lỗi",
                 description: error.response?.data?.message || "Không thể lấy danh sách người dùng.",

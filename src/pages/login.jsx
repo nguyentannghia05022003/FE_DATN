@@ -32,7 +32,7 @@ const LoginPage = () => {
             message.success("Đăng nhập thành công !");
             localStorage.setItem("access_token", res.data.access_token);
             setUser(res.data.user);
-            console.log("Check user: ", res.data.user);
+            // console.log("Check user: ", res.data.user);
 
             if (values.remember) {
                 localStorage.setItem('savedEmail', values.email);
