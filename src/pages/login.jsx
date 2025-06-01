@@ -170,7 +170,7 @@ const LoginPage = () => {
                             marginTop: "10px",
                         }}
                     >
-                        hoặc
+                        {/* hoặc
                         <span
                             onClick={() => navigate("/register")}
                             style={{
@@ -181,7 +181,7 @@ const LoginPage = () => {
                             }}
                         >
                             Đăng ký ngay!
-                        </span>
+                        </span> */}
                     </div>
                     <div
                         style={{
