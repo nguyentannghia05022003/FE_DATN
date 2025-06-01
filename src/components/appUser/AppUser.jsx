@@ -17,6 +17,7 @@ import {
     EyeOutlined,
     ReloadOutlined,
     InfoCircleOutlined,
+    SearchOutlined, // Đảm bảo import SearchOutlined
 } from "@ant-design/icons";
 import "./AppUser.css";
 import { fetchUserResumesAPI } from "../../services/api.appUser";
@@ -44,6 +45,8 @@ const AppUser = ({
     const [isResumeModalVisible, setIsResumeModalVisible] = useState(false);
     const [selectedResumes, setSelectedResumes] = useState([]);
     const [form] = Form.useForm();
+    const [searchPhone, setSearchPhone] = useState("");
+    const [sortOrder, setSortOrder] = useState(null);
 
     useEffect(() => {
         if (isModalVisible && isEditMode && selectedUser) {
@@ -52,7 +55,7 @@ const AppUser = ({
                 phone: selectedUser.phone,
                 email: selectedUser.email,
                 address: selectedUser.address,
-                points: selectedUser.points || 0, // Điền sẵn points khi chỉnh sửa
+                points: selectedUser.points || 0,
             });
         } else if (isModalVisible && !isEditMode) {
             form.resetFields();
@@ -81,7 +84,7 @@ const AppUser = ({
             form.resetFields();
             setIsEditMode(false);
             setSelectedUser(null);
-            onRefresh(); // Làm mới danh sách sau khi tạo hoặc cập nhật
+            onRefresh();
         } catch (error) {
             notification.error({
                 message: "Lỗi",
@@ -97,7 +100,7 @@ const AppUser = ({
                 message: "Thành công",
                 description: "Xóa người dùng thành công!",
             });
-            onRefresh(); // Làm mới danh sách sau khi xóa
+            onRefresh();
         } catch (error) {
             notification.error({
                 message: "Lỗi",
@@ -109,19 +112,11 @@ const AppUser = ({
     const handleViewResumes = async (phone) => {
         try {
             const response = await fetchUserResumesAPI(phone);
-            //console.log("Full API Response:", response);
             const resumes = response?.data?.resumes || [];
-            // console.log("Selected Resumes before set:", resumes);
-            // if (resumes.length === 0) {
-            //     notification.warning({
-            //         message: "Cảnh báo",
-            //         description: `Không tìm thấy giao dịch cho số điện thoại ${phone}. Vui lòng kiểm tra backend.`,
-            //     });
-            // }
-            setSelectedResumes(resumes);
+            const sortedResumes = [...resumes].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+            setSelectedResumes(sortedResumes);
             setIsResumeModalVisible(true);
         } catch (error) {
-            //console.error("Error fetching resumes:", error);
             notification.error({
                 message: "Lỗi",
                 description: error.response?.data?.message || "Không thể lấy lịch sử giao dịch.",
@@ -129,11 +124,22 @@ const AppUser = ({
         }
     };
 
+    const filteredAppUsers = appUsers.filter((user) =>
+        user.phone.includes(searchPhone)
+    );
+
+    const sortedAppUsers = [...filteredAppUsers].sort((a, b) => {
+        if (sortOrder === "ascend") return a.points - b.points;
+        if (sortOrder === "descend") return b.points - a.points;
+        return 0;
+    });
+
     const columns = [
         {
             title: "STT",
             key: "index",
-            render: (text, record, index) => (currentPage - 1) * pageSize + index + 1,
+            render: (text, record, index) =>
+                (currentPage - 1) * pageSize + index + 1,
         },
         { title: "ID", dataIndex: "_id", key: "_id" },
         { title: "Họ và tên", dataIndex: "fullName", key: "fullName" },
@@ -144,6 +150,18 @@ const AppUser = ({
             title: "Điểm thưởng",
             dataIndex: "points",
             key: "points",
+            sorter: true,
+            sortOrder: sortOrder,
+            onHeaderCell: () => ({
+                onClick: () =>
+                    setSortOrder((prev) =>
+                        prev === "ascend"
+                            ? "descend"
+                            : prev === "descend"
+                                ? null
+                                : "ascend"
+                    ),
+            }),
             render: (points) => points || 0,
         },
         {
@@ -185,6 +203,13 @@ const AppUser = ({
     return (
         <div className="app-user-container">
             <Space className="app-user-action-space">
+                <Input
+                    placeholder="Tìm theo số điện thoại"
+                    value={searchPhone}
+                    onChange={(e) => setSearchPhone(e.target.value)}
+                    prefix={<SearchOutlined />} // Sử dụng SearchOutlined tại đây
+                    style={{ width: 200 }}
+                />
                 <Button
                     type="primary"
                     icon={<PlusOutlined />}
@@ -207,7 +232,7 @@ const AppUser = ({
             </Space>
             <Table
                 columns={columns}
-                dataSource={appUsers}
+                dataSource={sortedAppUsers}
                 rowKey="_id"
                 pagination={false}
                 loading={loading}
@@ -313,7 +338,6 @@ const AppUser = ({
                 width={800}
                 className="app-user-modal"
             >
-                {/* {console.log("Rendering with selectedResumes:", selectedResumes)} */}
                 {selectedResumes.length === 0 ? (
                     <p>Không có giao dịch nào để hiển thị.</p>
                 ) : (

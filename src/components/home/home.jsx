@@ -23,6 +23,7 @@ import { fetchResumeListAPI } from "../../services/api.resume";
 import { fetchTransactionListAPI } from "../../services/api.banking";
 import { AuthContext } from "../context/auth.context";
 import "./home.css";
+import { fetchAppUsersAPI } from "../../services/api.appUser";
 
 ChartJS.register(
     CategoryScale,
@@ -56,7 +57,7 @@ function Home() {
             fetchAllProductAPI().then((res) => {
                 setInventory(res.data?.meta?.total || 0);
             });
-            fetchAllUserAPI().then((res) => {
+            fetchAppUsersAPI().then((res) => {
                 setCustomers(res.data?.meta?.total || 0);
             });
         }
