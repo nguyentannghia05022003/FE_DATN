@@ -14,7 +14,6 @@ import ProductTableModals from "./ProductTableModals";
 import "./product.table.css";
 import dayjs from "dayjs";
 
-// Hàm loại bỏ dấu tiếng Việt và chuyển về chữ thường
 const removeDiacritics = (str) => {
     if (!str) return "";
     return str
@@ -25,7 +24,6 @@ const removeDiacritics = (str) => {
         .toLowerCase();
 };
 
-// Hàm định dạng ngày
 const formatDate = (dateString) => {
     if (!dateString) return "-";
     const date = new Date(dateString);
@@ -56,7 +54,6 @@ const ProductTable = () => {
     const [dataDetail, setDataDetail] = useState(null);
     const [dataUpdate, setDataUpdate] = useState(null);
 
-    // Hàm tải toàn bộ sản phẩm từ tất cả các trang
     const loadAllProducts = useCallback(async () => {
         setLoadingTable(true);
         let allProducts = [];
@@ -94,7 +91,6 @@ const ProductTable = () => {
         }
     }, [pageSize]);
 
-    // Hàm xử lý lọc dựa trên dữ liệu đã tích lũy
     const handleSearch = useCallback((data = dataProduct) => {
         let filtered = [...data];
 
@@ -115,7 +111,6 @@ const ProductTable = () => {
                 const normalizedSearchBarcode = removeDiacritics(searchBarcode);
                 filtered = filtered.filter((item) => {
                     if (!item.barCode) {
-                        // console.warn(`Sản phẩm với ID ${item._id} không có mã barcode`);
                         return false;
                     }
                     const normalizedBarcode = removeDiacritics(item.barCode);
@@ -195,6 +190,7 @@ const ProductTable = () => {
             ID: item._id,
             "Mã Sản Phẩm": item.barCode,
             "Tên Sản Phẩm": item.name,
+            "Link Ảnh": item.image,
             "Giá Tiền": item.price,
             "Số Lượng": item.quantity,
             "Ngày Sản Xuất": formatDate(item.manufacturingDate),

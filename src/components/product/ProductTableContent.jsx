@@ -78,6 +78,20 @@ const ProductTableContent = ({
             ),
         },
         {
+            title: "Ảnh Sản Phẩm",
+            dataIndex: "image",
+            render: (text) => (
+                <img
+                    src={text}
+                    alt="Product"
+                    style={{ width: "50px", height: "50px", objectFit: "contain" }}
+                    onError={(e) => (e.target.src = "https://via.placeholder.com/50")} // Fallback image
+                />
+            ),
+            width: 100,
+            align: "center",
+        },
+        {
             title: "Giá Tiền",
             dataIndex: "price",
             sorter: (a, b) => (a.price || 0) - (b.price || 0),
