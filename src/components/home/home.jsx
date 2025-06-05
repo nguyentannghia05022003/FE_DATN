@@ -1,4 +1,3 @@
-// src/components/home/Home.jsx
 import {
     DollarCircleOutlined,
     ShoppingCartOutlined,
@@ -34,11 +33,22 @@ ChartJS.register(
     Legend
 );
 
+// Hàm tính số tuần trong năm
+const getWeekNumber = (date) => {
+    const d = new Date(date);
+    d.setHours(0, 0, 0, 0);
+    d.setDate(d.getDate() + 4 - (d.getDay() || 7));
+    const yearStart = new Date(d.getFullYear(), 0, 1);
+    const weekNo = Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
+    return `${d.getFullYear()}-W${weekNo}`;
+};
+
 function Home() {
     const [resumesCount, setResumesCount] = useState(0);
     const [inventory, setInventory] = useState(0);
     const [customers, setCustomers] = useState(0);
     const [totalResumePrice, setTotalResumePrice] = useState(0);
+    const [resumeTimePeriod, setResumeTimePeriod] = useState("all"); // Thêm state cho khoảng thời gian
     const { user } = useContext(AuthContext);
 
     useEffect(() => {
@@ -51,17 +61,80 @@ function Home() {
             fetchResumeListAPI(1, 1000).then((res) => {
                 const resumeList = res.data?.result || [];
                 setResumesCount(res.data?.meta?.total || 0);
-                const total = resumeList.reduce((sum, resume) => sum + (resume.totalPrice || 0), 0);
+
+                let total = 0;
+                const currentDate = new Date(); // Ngày hiện tại: 05/06/2025
+
+                if (resumeTimePeriod === "all") {
+                    total = resumeList.reduce((sum, resume) => sum + (resume.totalPrice || 0), 0);
+                } else if (resumeTimePeriod === "day") {
+                    total = resumeList.reduce((sum, resume) => {
+                        const resumeDate = new Date(resume.transactionDate || resume.createdAt || "2025-05-19").toLocaleDateString('vi-VN');
+                        if (resumeDate === currentDate.toLocaleDateString('vi-VN')) {
+                            return sum + (resume.totalPrice || 0);
+                        }
+                        return sum;
+                    }, 0);
+                } else if (resumeTimePeriod === "week") {
+                    const currentWeek = getWeekNumber(currentDate);
+                    total = resumeList.reduce((sum, resume) => {
+                        const resumeWeek = getWeekNumber(resume.transactionDate || resume.createdAt || "2025-05-19");
+                        if (resumeWeek === currentWeek) {
+                            return sum + (resume.totalPrice || 0);
+                        }
+                        return sum;
+                    }, 0);
+                } else if (resumeTimePeriod === "month") {
+                    total = resumeList.reduce((sum, resume) => {
+                        const resumeDate = new Date(resume.transactionDate || resume.createdAt || "2025-05-19");
+                        const resumeMonthYear = `${resumeDate.toLocaleString('vi-VN', { month: 'long' })} ${resumeDate.getFullYear()}`;
+                        const currentMonthYear = `${currentDate.toLocaleString('vi-VN', { month: 'long' })} ${currentDate.getFullYear()}`;
+                        if (resumeMonthYear === currentMonthYear) {
+                            return sum + (resume.totalPrice || 0);
+                        }
+                        return sum;
+                    }, 0);
+                } else if (resumeTimePeriod === "year") {
+                    total = resumeList.reduce((sum, resume) => {
+                        const resumeYear = new Date(resume.transactionDate || resume.createdAt || "2025-05-19").getFullYear();
+                        if (resumeYear === currentDate.getFullYear()) {
+                            return sum + (resume.totalPrice || 0);
+                        }
+                        return sum;
+                    }, 0);
+                }
+
                 setTotalResumePrice(total);
+            }).catch((error) => {
+                notification.error({
+                    message: "Lỗi",
+                    description: "Không thể lấy dữ liệu resume. Vui lòng kiểm tra API.",
+                });
+                setResumesCount(0);
+                setTotalResumePrice(0);
             });
+
             fetchAllProductAPI().then((res) => {
                 setInventory(res.data?.meta?.total || 0);
+            }).catch((error) => {
+                notification.error({
+                    message: "Lỗi",
+                    description: "Không thể lấy dữ liệu sản phẩm. Vui lòng kiểm tra API.",
+                });
+                setInventory(0);
             });
+
             fetchAppUsersAPI().then((res) => {
                 setCustomers(res.data?.meta?.total || 0);
+            }).catch((error) => {
+                notification.error({
+                    message: "Lỗi",
+                    description: "Không thể lấy dữ liệu khách hàng. Vui lòng kiểm tra API.",
+                });
+                setCustomers(0);
             });
         }
-    }, [user]);
+    }, [user, resumeTimePeriod]);
 
     return (
         <div className="dashboard-container">
@@ -82,11 +155,24 @@ function Home() {
                         title={"Customer"}
                         value={customers}
                     />
-                    <DashboardCard
-                        icon={<DollarCircleOutlined className="icon revenue-icon" />}
-                        title={"Tổng tiền (Resume)"}
-                        value={totalResumePrice}
-                    />
+                    <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+                        <Select
+                            value={resumeTimePeriod}
+                            onChange={setResumeTimePeriod}
+                            style={{ width: "200px" }}
+                        >
+                            <Select.Option value="all">Tất cả</Select.Option>
+                            <Select.Option value="day">Theo ngày</Select.Option>
+                            <Select.Option value="week">Theo tuần</Select.Option>
+                            <Select.Option value="month">Theo tháng</Select.Option>
+                            <Select.Option value="year">Theo năm</Select.Option>
+                        </Select>
+                        <DashboardCard
+                            icon={<DollarCircleOutlined className="icon revenue-icon" />}
+                            title={"Tổng tiền (Resume)"}
+                            value={totalResumePrice}
+                        />
+                    </div>
                 </div>
 
                 <div className="dashboard-content">
@@ -124,7 +210,7 @@ function ExpiringProducts({ user }) {
             setLoading(true);
             fetchAllProductAPI().then((res) => {
                 const products = res.data?.result || [];
-                const currentDate = new Date(); // Ngày hiện tại
+                const currentDate = new Date();
                 const thresholdDate = new Date(currentDate);
                 thresholdDate.setDate(currentDate.getDate() + 7);
 
@@ -143,7 +229,6 @@ function ExpiringProducts({ user }) {
                 setDataSource(expiringProducts);
                 setLoading(false);
             }).catch((error) => {
-                //console.error("Error fetching products:", error);
                 setDataSource([]);
                 setLoading(false);
                 notification.error({
@@ -159,7 +244,6 @@ function ExpiringProducts({ user }) {
             <Typography.Title level={5}>Product sắp hết hạn sử dụng</Typography.Title>
             <Table
                 columns={[
-                    // { title: "Title", dataIndex: "mainText" },
                     { title: "Name", dataIndex: "name" },
                     { title: "Barcode", dataIndex: "barCode" },
                     { title: "Quantity", dataIndex: "quantity" },
@@ -180,10 +264,8 @@ function DashboardChart({ user }) {
     const [timePeriod, setTimePeriod] = useState("day");
 
     useEffect(() => {
-        // console.log("User changed in DashboardChart:", user);
         if (!user || !user._id) {
             setRevenueData({ labels: [], datasets: [] });
-            //console.log("Reset revenueData to empty:", { labels: [], datasets: [] });
         } else {
             const fetchData = async () => {
                 try {
@@ -201,7 +283,6 @@ function DashboardChart({ user }) {
                     let resumeData = [];
 
                     if (timePeriod === "day") {
-                        // Tính doanh thu Banking theo ngày
                         const bankingDailyData = bankingTransactions.reduce((acc, curr) => {
                             const date = new Date(curr.transactionDate).toLocaleDateString('vi-VN');
                             const revenue = (curr.amountIn || 0) - (curr.amountOut || 0);
@@ -211,7 +292,6 @@ function DashboardChart({ user }) {
                         bankingLabels = Object.keys(bankingDailyData);
                         bankingData = Object.values(bankingDailyData);
 
-                        // Tính doanh thu Resumes theo ngày
                         const resumeDailyData = resumeList.reduce((acc, curr) => {
                             const date = new Date(curr.transactionDate || curr.createdAt || "2025-05-19").toLocaleDateString('vi-VN');
                             const revenue = curr.totalPrice || 0;
@@ -220,8 +300,25 @@ function DashboardChart({ user }) {
                         }, {});
                         resumeLabels = Object.keys(resumeDailyData);
                         resumeData = Object.values(resumeDailyData);
+                    } else if (timePeriod === "week") {
+                        const bankingWeeklyData = bankingTransactions.reduce((acc, curr) => {
+                            const week = getWeekNumber(curr.transactionDate);
+                            const revenue = (curr.amountIn || 0) - (curr.amountOut || 0);
+                            acc[week] = (acc[week] || 0) + revenue;
+                            return acc;
+                        }, {});
+                        bankingLabels = Object.keys(bankingWeeklyData);
+                        bankingData = Object.values(bankingWeeklyData);
+
+                        const resumeWeeklyData = resumeList.reduce((acc, curr) => {
+                            const week = getWeekNumber(curr.transactionDate || curr.createdAt || "2025-05-19");
+                            const revenue = curr.totalPrice || 0;
+                            acc[week] = (acc[week] || 0) + revenue;
+                            return acc;
+                        }, {});
+                        resumeLabels = Object.keys(resumeWeeklyData);
+                        resumeData = Object.values(resumeWeeklyData);
                     } else if (timePeriod === "month") {
-                        // Tính doanh thu Banking theo tháng
                         const bankingMonthlyData = bankingTransactions.reduce((acc, curr) => {
                             const date = new Date(curr.transactionDate);
                             const monthYear = `${date.toLocaleString('vi-VN', { month: 'long' })} ${date.getFullYear()}`;
@@ -232,7 +329,6 @@ function DashboardChart({ user }) {
                         bankingLabels = Object.keys(bankingMonthlyData);
                         bankingData = Object.values(bankingMonthlyData);
 
-                        // Tính doanh thu Resumes theo tháng
                         const resumeMonthlyData = resumeList.reduce((acc, curr) => {
                             const date = new Date(curr.transactionDate || curr.createdAt || "2025-05-19");
                             const monthYear = `${date.toLocaleString('vi-VN', { month: 'long' })} ${date.getFullYear()}`;
@@ -243,7 +339,6 @@ function DashboardChart({ user }) {
                         resumeLabels = Object.keys(resumeMonthlyData);
                         resumeData = Object.values(resumeMonthlyData);
                     } else if (timePeriod === "year") {
-                        // Tính doanh thu Banking theo năm
                         const bankingYearlyData = bankingTransactions.reduce((acc, curr) => {
                             const year = new Date(curr.transactionDate).getFullYear();
                             const revenue = (curr.amountIn || 0) - (curr.amountOut || 0);
@@ -253,7 +348,6 @@ function DashboardChart({ user }) {
                         bankingLabels = Object.keys(bankingYearlyData).map(year => `${year}`);
                         bankingData = Object.values(bankingYearlyData);
 
-                        // Tính doanh thu Resumes theo năm
                         const resumeYearlyData = resumeList.reduce((acc, curr) => {
                             const year = new Date(curr.transactionDate || curr.createdAt || "2025-05-19").getFullYear();
                             const revenue = curr.totalPrice || 0;
@@ -264,27 +358,24 @@ function DashboardChart({ user }) {
                         resumeData = Object.values(resumeYearlyData);
                     }
 
-                    // Đảm bảo labels đồng nhất giữa Banking và Resumes
                     const allLabels = [...new Set([...bankingLabels, ...resumeLabels])].sort();
 
-                    // Tạo datasets
                     setRevenueData({
                         labels: allLabels,
                         datasets: [
                             {
                                 label: "Doanh thu (Banking)",
                                 data: allLabels.map(label => bankingData[bankingLabels.indexOf(label)] || 0),
-                                backgroundColor: "rgba(54, 162, 235, 0.8)", // Màu xanh dương
+                                backgroundColor: "rgba(54, 162, 235, 0.8)",
                             },
                             {
                                 label: "Doanh thu (Resumes)",
                                 data: allLabels.map(label => resumeData[resumeLabels.indexOf(label)] || 0),
-                                backgroundColor: "rgba(255, 99, 132, 0.8)", // Màu đỏ
+                                backgroundColor: "rgba(255, 99, 132, 0.8)",
                             },
                         ],
                     });
                 } catch (error) {
-                    //console.error("Error fetching data:", error);
                     notification.error({
                         message: "Lỗi",
                         description: "Không thể lấy dữ liệu doanh thu. Vui lòng kiểm tra API.",
@@ -314,6 +405,7 @@ function DashboardChart({ user }) {
                     style={{ width: "200px" }}
                 >
                     <Select.Option value="day">Theo ngày</Select.Option>
+                    <Select.Option value="week">Theo tuần</Select.Option>
                     <Select.Option value="month">Theo tháng</Select.Option>
                     <Select.Option value="year">Theo năm</Select.Option>
                 </Select>

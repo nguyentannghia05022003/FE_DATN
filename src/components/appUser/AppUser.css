@@ -3,7 +3,6 @@
     padding: 20px;
     width: 100%;
     box-sizing: border-box;
-    /* Đảm bảo padding không làm tràn */
 }
 
 /* Space chứa các button hành động */
@@ -17,7 +16,6 @@
 .app-user-table {
     width: 100%;
     overflow-x: auto;
-    /* Thêm thanh cuộn ngang nếu bảng tràn */
     border: 1px solid #f0f0f0;
     border-radius: 4px;
 }
@@ -34,18 +32,14 @@
 /* Modal */
 .app-user-modal {
     max-width: 600px;
-    /* Giới hạn chiều rộng modal */
     width: 100%;
 }
 
 /* Form trong modal */
 .app-user-form {
     max-height: 60vh;
-    /* Giới hạn chiều cao form */
     overflow-y: auto;
-    /* Thêm thanh cuộn dọc nếu form quá dài */
     padding-right: 10px;
-    /* Khoảng cách để tránh tràn thanh cuộn */
 }
 
 /* Input trong form */
@@ -108,17 +102,13 @@
     text-align: right;
     width: 100%;
     overflow-x: auto;
-    /* Đảm bảo pagination không tràn */
 }
 
 /* Nội dung trong modal chi tiết giao dịch */
 .app-user-modal .ant-collapse-content-box {
     word-break: break-word;
-    /* Đảm bảo nội dung dài (như email, tên sản phẩm) không tràn */
     max-height: 50vh;
-    /* Giới hạn chiều cao nội dung */
     overflow-y: auto;
-    /* Thêm thanh cuộn dọc nếu nội dung dài */
 }
 
 /* Responsive cho màn hình nhỏ */

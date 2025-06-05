@@ -17,7 +17,7 @@ import {
     EyeOutlined,
     ReloadOutlined,
     InfoCircleOutlined,
-    SearchOutlined, // Đảm bảo import SearchOutlined
+    SearchOutlined,
 } from "@ant-design/icons";
 import "./AppUser.css";
 import { fetchUserResumesAPI } from "../../services/api.appUser";
@@ -46,15 +46,62 @@ const AppUser = ({
     const [selectedResumes, setSelectedResumes] = useState([]);
     const [form] = Form.useForm();
     const [searchPhone, setSearchPhone] = useState("");
-    const [sortOrder, setSortOrder] = useState(null);
+    const [sortOrderTotal, setSortOrderTotal] = useState(null);
+    const [sortOrderMember, setSortOrderMember] = useState(null);
+    const [usersWithTransactions, setUsersWithTransactions] = useState([]);
+
+    const getMemberType = (total) => {
+        if (total >= 100000000) return "Kim cương";
+        if (total >= 50000000) return "Bạch kim";
+        if (total >= 10000000) return "Vàng";
+        if (total >= 5000000) return "Bạc";
+        return "Đồng";
+    };
+
+    useEffect(() => {
+        const calculateTotalTransactions = async () => {
+            try {
+                const updatedUsers = await Promise.all(
+                    appUsers.map(async (user) => {
+                        const response = await fetchUserResumesAPI(user.phone);
+                        const resumes = response?.data?.resumes || [];
+                        const totalTransactions = resumes.reduce(
+                            (sum, resume) => sum + (resume.totalPrice || 0),
+                            0
+                        );
+                        return {
+                            ...user,
+                            totalTransactions,
+                            memberType: getMemberType(totalTransactions),
+                        };
+                    })
+                );
+                setUsersWithTransactions(updatedUsers);
+            } catch (error) {
+                notification.error({
+                    message: "Lỗi",
+                    description: "Không thể tính tổng tiền giao dịch.",
+                });
+                setUsersWithTransactions(
+                    appUsers.map((user) => ({
+                        ...user,
+                        totalTransactions: 0,
+                        memberType: "Đồng",
+                    }))
+                );
+            }
+        };
+
+        calculateTotalTransactions();
+    }, [appUsers]);
 
     useEffect(() => {
         if (isModalVisible && isEditMode && selectedUser) {
             form.setFieldsValue({
-                fullName: selectedUser.fullName,
-                phone: selectedUser.phone,
-                email: selectedUser.email,
-                address: selectedUser.address,
+                fullName: selectedUser.fullName || "",
+                phone: selectedUser.phone || "",
+                email: selectedUser.email || "",
+                address: selectedUser.address || "",
                 points: selectedUser.points || 0,
             });
         } else if (isModalVisible && !isEditMode) {
@@ -124,13 +171,27 @@ const AppUser = ({
         }
     };
 
-    const filteredAppUsers = appUsers.filter((user) =>
+    const handleRefresh = () => {
+        setSortOrderTotal(null);
+        setSortOrderMember(null);
+        setSearchPhone("");
+        onRefresh();
+    };
+
+    const filteredAppUsers = usersWithTransactions.filter((user) =>
         user.phone.includes(searchPhone)
     );
 
     const sortedAppUsers = [...filteredAppUsers].sort((a, b) => {
-        if (sortOrder === "ascend") return a.points - b.points;
-        if (sortOrder === "descend") return b.points - a.points;
+        if (sortOrderMember) {
+            const memberOrder = { "Kim cương": 5, "Bạch kim": 4, "Vàng": 3, "Bạc": 2, "Đồng": 1 };
+            const order = sortOrderMember === "ascend" ? 1 : -1;
+            return order * (memberOrder[a.memberType] - memberOrder[b.memberType]);
+        }
+        if (sortOrderTotal) {
+            const order = sortOrderTotal === "ascend" ? 1 : -1;
+            return order * (a.totalTransactions - b.totalTransactions);
+        }
         return 0;
     });
 
@@ -151,10 +212,10 @@ const AppUser = ({
             dataIndex: "points",
             key: "points",
             sorter: true,
-            sortOrder: sortOrder,
+            sortOrder: sortOrderTotal,
             onHeaderCell: () => ({
                 onClick: () =>
-                    setSortOrder((prev) =>
+                    setSortOrderTotal((prev) =>
                         prev === "ascend"
                             ? "descend"
                             : prev === "descend"
@@ -163,6 +224,43 @@ const AppUser = ({
                     ),
             }),
             render: (points) => points || 0,
+        },
+        {
+            title: "Tổng tiền giao dịch",
+            dataIndex: "totalTransactions",
+            key: "totalTransactions",
+            sorter: true,
+            sortOrder: sortOrderTotal,
+            onHeaderCell: () => ({
+                onClick: () =>
+                    setSortOrderTotal((prev) =>
+                        prev === "ascend"
+                            ? "descend"
+                            : prev === "descend"
+                                ? null
+                                : "ascend"
+                    ),
+            }),
+            render: (totalTransactions) =>
+                totalTransactions ? totalTransactions.toLocaleString() + " VNĐ" : "0 VNĐ",
+        },
+        {
+            title: "Loại thành viên",
+            dataIndex: "memberType",
+            key: "memberType",
+            sorter: true,
+            sortOrder: sortOrderMember,
+            onHeaderCell: () => ({
+                onClick: () =>
+                    setSortOrderMember((prev) =>
+                        prev === "ascend"
+                            ? "descend"
+                            : prev === "descend"
+                                ? null
+                                : "ascend"
+                    ),
+            }),
+            render: (memberType) => memberType || "Đồng",
         },
         {
             title: "Hành động",
@@ -207,7 +305,7 @@ const AppUser = ({
                     placeholder="Tìm theo số điện thoại"
                     value={searchPhone}
                     onChange={(e) => setSearchPhone(e.target.value)}
-                    prefix={<SearchOutlined />} // Sử dụng SearchOutlined tại đây
+                    prefix={<SearchOutlined />}
                     style={{ width: 200 }}
                 />
                 <Button
@@ -224,7 +322,7 @@ const AppUser = ({
                 </Button>
                 <Button
                     icon={<ReloadOutlined />}
-                    onClick={onRefresh}
+                    onClick={handleRefresh}
                     className="app-user-refresh-btn"
                 >
                     Làm mới
