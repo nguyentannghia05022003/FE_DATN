@@ -5,7 +5,7 @@ import {
     UserOutlined,
 } from "@ant-design/icons";
 import { Card, Space, Statistic, Table, Typography, Select, notification } from "antd";
-import { useEffect, useState, useContext } from "react";
+import { useEffect, useState, useContext, useCallback } from "react";
 import {
     Chart as ChartJS,
     CategoryScale,
@@ -21,8 +21,8 @@ import { fetchAllProductAPI } from "../../services/api.product";
 import { fetchResumeListAPI } from "../../services/api.resume";
 import { fetchTransactionListAPI } from "../../services/api.banking";
 import { AuthContext } from "../context/auth.context";
-import "./home.css";
 import { fetchAppUsersAPI } from "../../services/api.appUser";
+import "./home.css";
 
 ChartJS.register(
     CategoryScale,
@@ -48,111 +48,113 @@ function Home() {
     const [inventory, setInventory] = useState(0);
     const [customers, setCustomers] = useState(0);
     const [totalResumePrice, setTotalResumePrice] = useState(0);
-    const [resumeTimePeriod, setResumeTimePeriod] = useState("all"); // Thêm state cho khoảng thời gian
+    const [resumeTimePeriod, setResumeTimePeriod] = useState("all");
     const { user } = useContext(AuthContext);
+    const [refreshTrigger, setRefreshTrigger] = useState(new Date());
 
-    useEffect(() => {
+    // Memoized fetch function to avoid recreating on every render
+    const fetchData = useCallback(async () => {
         if (!user || !user._id) {
             setResumesCount(null);
             setInventory(null);
             setCustomers(null);
             setTotalResumePrice(null);
-        } else {
-            fetchResumeListAPI(1, 1000).then((res) => {
-                const resumeList = res.data?.result || [];
-                setResumesCount(res.data?.meta?.total || 0);
-
-                let total = 0;
-                const currentDate = new Date(); // Ngày hiện tại: 05/06/2025
-
-                if (resumeTimePeriod === "all") {
-                    total = resumeList.reduce((sum, resume) => sum + (resume.totalPrice || 0), 0);
-                } else if (resumeTimePeriod === "day") {
-                    total = resumeList.reduce((sum, resume) => {
-                        const resumeDate = new Date(resume.transactionDate || resume.createdAt || "2025-05-19").toLocaleDateString('vi-VN');
-                        if (resumeDate === currentDate.toLocaleDateString('vi-VN')) {
-                            return sum + (resume.totalPrice || 0);
-                        }
-                        return sum;
-                    }, 0);
-                } else if (resumeTimePeriod === "week") {
-                    const currentWeek = getWeekNumber(currentDate);
-                    total = resumeList.reduce((sum, resume) => {
-                        const resumeWeek = getWeekNumber(resume.transactionDate || resume.createdAt || "2025-05-19");
-                        if (resumeWeek === currentWeek) {
-                            return sum + (resume.totalPrice || 0);
-                        }
-                        return sum;
-                    }, 0);
-                } else if (resumeTimePeriod === "month") {
-                    total = resumeList.reduce((sum, resume) => {
-                        const resumeDate = new Date(resume.transactionDate || resume.createdAt || "2025-05-19");
-                        const resumeMonthYear = `${resumeDate.toLocaleString('vi-VN', { month: 'long' })} ${resumeDate.getFullYear()}`;
-                        const currentMonthYear = `${currentDate.toLocaleString('vi-VN', { month: 'long' })} ${currentDate.getFullYear()}`;
-                        if (resumeMonthYear === currentMonthYear) {
-                            return sum + (resume.totalPrice || 0);
-                        }
-                        return sum;
-                    }, 0);
-                } else if (resumeTimePeriod === "year") {
-                    total = resumeList.reduce((sum, resume) => {
-                        const resumeYear = new Date(resume.transactionDate || resume.createdAt || "2025-05-19").getFullYear();
-                        if (resumeYear === currentDate.getFullYear()) {
-                            return sum + (resume.totalPrice || 0);
-                        }
-                        return sum;
-                    }, 0);
-                }
-
-                setTotalResumePrice(total);
-            }).catch((error) => {
-                notification.error({
-                    message: "Lỗi",
-                    description: "Không thể lấy dữ liệu resume. Vui lòng kiểm tra API.",
-                });
-                setResumesCount(0);
-                setTotalResumePrice(0);
-            });
-
-            fetchAllProductAPI().then((res) => {
-                setInventory(res.data?.meta?.total || 0);
-            }).catch((error) => {
-                notification.error({
-                    message: "Lỗi",
-                    description: "Không thể lấy dữ liệu sản phẩm. Vui lòng kiểm tra API.",
-                });
-                setInventory(0);
-            });
-
-            fetchAppUsersAPI().then((res) => {
-                setCustomers(res.data?.meta?.total || 0);
-            }).catch((error) => {
-                notification.error({
-                    message: "Lỗi",
-                    description: "Không thể lấy dữ liệu khách hàng. Vui lòng kiểm tra API.",
-                });
-                setCustomers(0);
-            });
+            return;
         }
-    }, [user, resumeTimePeriod]);
+
+        try {
+            const [resumeRes, productRes, appUsersRes] = await Promise.all([
+                fetchResumeListAPI(1, 1000),
+                fetchAllProductAPI(),
+                fetchAppUsersAPI(1, 1000), // Fetch all app users with a large pageSize
+            ]);
+
+            const resumeList = resumeRes.data?.result || [];
+            setResumesCount(resumeRes.data?.meta?.total || 0);
+
+            let total = 0;
+            const currentDate = new Date("2025-06-07T02:36:00+07:00"); // Updated to current time
+
+            if (resumeTimePeriod === "all") {
+                total = resumeList.reduce((sum, resume) => sum + (resume.totalPrice || 0), 0);
+            } else if (resumeTimePeriod === "day") {
+                total = resumeList.reduce((sum, resume) => {
+                    const resumeDate = new Date(resume.transactionDate || resume.createdAt || "2025-05-19").toLocaleDateString('vi-VN');
+                    if (resumeDate === currentDate.toLocaleDateString('vi-VN')) {
+                        return sum + (resume.totalPrice || 0);
+                    }
+                    return sum;
+                }, 0);
+            } else if (resumeTimePeriod === "week") {
+                const currentWeek = getWeekNumber(currentDate);
+                total = resumeList.reduce((sum, resume) => {
+                    const resumeWeek = getWeekNumber(resume.transactionDate || resume.createdAt || "2025-05-19");
+                    if (resumeWeek === currentWeek) {
+                        return sum + (resume.totalPrice || 0);
+                    }
+                    return sum;
+                }, 0);
+            } else if (resumeTimePeriod === "month") {
+                total = resumeList.reduce((sum, resume) => {
+                    const resumeDate = new Date(resume.transactionDate || resume.createdAt || "2025-05-19");
+                    const resumeMonthYear = `${resumeDate.toLocaleString('vi-VN', { month: 'long' })} ${resumeDate.getFullYear()}`;
+                    const currentMonthYear = `${currentDate.toLocaleString('vi-VN', { month: 'long' })} ${currentDate.getFullYear()}`;
+                    if (resumeMonthYear === currentMonthYear) {
+                        return sum + (resume.totalPrice || 0);
+                    }
+                    return sum;
+                }, 0);
+            } else if (resumeTimePeriod === "year") {
+                total = resumeList.reduce((sum, resume) => {
+                    const resumeYear = new Date(resume.transactionDate || resume.createdAt || "2025-05-19").getFullYear();
+                    if (resumeYear === currentDate.getFullYear()) {
+                        return sum + (resume.totalPrice || 0);
+                    }
+                    return sum;
+                }, 0);
+            }
+            setTotalResumePrice(total);
+
+            setInventory(productRes.data?.meta?.total || 0);
+            setCustomers(appUsersRes.data?.meta?.total || 0);
+        } catch (error) {
+            notification.error({
+                message: "Lỗi",
+                description: "Không thể lấy dữ liệu. Vui lòng kiểm tra API.",
+            });
+            setResumesCount(0);
+            setTotalResumePrice(0);
+            setInventory(0);
+            setCustomers(0);
+        }
+    }, [user, resumeTimePeriod, refreshTrigger]);
+
+    useEffect(() => {
+        fetchData();
+    }, [fetchData]);
+
+    // Optional: Add a manual refresh button if needed
+    const handleRefresh = () => {
+        setRefreshTrigger(new Date()); // Update trigger to force re-fetch
+    };
 
     return (
         <div className="dashboard-container">
-            <Space size={20} direction="vertical" style={{ width: "100%" }}>
+            <div className="space-y-5">
                 <div className="dashboard-stats">
                     <DashboardCard
-                        icon={<ShoppingCartOutlined className="icon orders-icon" />}
+                        icon={<ShoppingCartOutlined className="anticon-shopping-cart" />}
                         title={"Resumes"}
                         value={resumesCount}
                     />
                     <DashboardCard
-                        icon={<ShoppingOutlined className="icon inventory-icon" />}
+                        icon={<ShoppingOutlined className="anticon-shopping" />}
                         title={"Products"}
                         value={inventory}
                     />
                     <DashboardCard
-                        icon={<UserOutlined className="icon customer-icon" />}
-                        title={"Customer"}
+                        icon={<UserOutlined className="anticon-user" />}
+                        title={"Customers"}
                         value={customers}
                     />
                     <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
@@ -161,29 +163,43 @@ function Home() {
                             onChange={setResumeTimePeriod}
                             style={{ width: "200px" }}
                         >
-                            <Select.Option value="all">Tất cả</Select.Option>
-                            <Select.Option value="day">Theo ngày</Select.Option>
-                            <Select.Option value="week">Theo tuần</Select.Option>
-                            <Select.Option value="month">Theo tháng</Select.Option>
-                            <Select.Option value="year">Theo năm</Select.Option>
+                            <Select.Option value="all">Tổng cộng</Select.Option>
+                            <Select.Option value="day">Ngày</Select.Option>
+                            <Select.Option value="week">Tuần</Select.Option>
+                            <Select.Option value="month">Tháng</Select.Option>
+                            <Select.Option value="year">Năm</Select.Option>
                         </Select>
                         <DashboardCard
-                            icon={<DollarCircleOutlined className="icon revenue-icon" />}
+                            icon={<DollarCircleOutlined className="anticon-dollar-circle" />}
                             title={"Tổng tiền (Resume)"}
                             value={totalResumePrice}
                         />
                     </div>
+                    {/* Optional refresh button */}
+                    {/* <Button onClick={handleRefresh} style={{ marginTop: "10px" }}>
+                        Làm mới
+                    </Button> */}
                 </div>
 
                 <div className="dashboard-content">
-                    <div className="recent-orders">
-                        <ExpiringProducts user={user} />
+                    <div className="charts-container">
+                        <div className="chart">
+                            <DashboardChart user={user} />
+                        </div>
+                        <div className="chart">
+                            <NewUsersChart user={user} />
+                        </div>
                     </div>
-                    <div className="chart">
-                        <DashboardChart user={user} />
+                    <div className="tables-container">
+                        <div className="recent-orders">
+                            <ExpiringProducts user={user} />
+                        </div>
+                        {/* <div className="recent-orders">
+                            <TopProducts user={user} />
+                        </div> */}
                     </div>
                 </div>
-            </Space>
+            </div>
         </div>
     );
 }
@@ -210,30 +226,30 @@ function ExpiringProducts({ user }) {
             setLoading(true);
             fetchAllProductAPI().then((res) => {
                 const products = res.data?.result || [];
-                const currentDate = new Date();
+                const currentDate = new Date("2025-06-07T02:36:00+07:00"); // Updated to current time
                 const thresholdDate = new Date(currentDate);
                 thresholdDate.setDate(currentDate.getDate() + 7);
 
-                const expiringProducts = products
+                const expiringData = products
                     .filter((product) => {
                         if (!product.expirationDate) return false;
-                        const expirationDate = new Date(product.expirationDate);
-                        return expirationDate >= currentDate && expirationDate <= thresholdDate;
+                        const date = new Date(product.expirationDate);
+                        return date >= currentDate && date <= thresholdDate;
                     })
-                    .map((product, index) => ({
-                        ...product,
-                        key: product._id || index,
-                        expirationDate: new Date(product.expirationDate).toISOString().split('T')[0],
+                    .map((item, index) => ({
+                        ...item,
+                        key: item._id || index,
+                        expirationDate: new Date(item.expirationDate).toISOString().split('T')[0],
                     }));
 
-                setDataSource(expiringProducts);
+                setDataSource(expiringData);
                 setLoading(false);
-            }).catch((error) => {
+            }).catch((err) => {
                 setDataSource([]);
                 setLoading(false);
                 notification.error({
-                    message: "Lỗi",
-                    description: "Không thể lấy dữ liệu sản phẩm. Vui lòng kiểm tra API.",
+                    message: "Error",
+                    description: "Cannot fetch product data. Please check the API.",
                 });
             });
         }
@@ -241,14 +257,14 @@ function ExpiringProducts({ user }) {
 
     return (
         <>
-            <Typography.Title level={5}>Product sắp hết hạn sử dụng</Typography.Title>
+            <Typography.Title level={5}>Sản phẩm sắp hết hạn</Typography.Title>
             <Table
                 columns={[
-                    { title: "Name", dataIndex: "name" },
-                    { title: "Barcode", dataIndex: "barCode" },
-                    { title: "Quantity", dataIndex: "quantity" },
-                    { title: "Price", dataIndex: "price" },
-                    { title: "Expiration Date", dataIndex: "expirationDate" },
+                    { title: "Tên", dataIndex: "name" },
+                    { title: "Mã vạch", dataIndex: "barCode" },
+                    { title: "Số lượng", dataIndex: "quantity" },
+                    { title: "Giá", dataIndex: "price" },
+                    { title: "Ngày hết hạn", dataIndex: "expirationDate" },
                 ]}
                 loading={loading}
                 dataSource={dataSource}
@@ -258,6 +274,112 @@ function ExpiringProducts({ user }) {
         </>
     );
 }
+
+// function TopProducts({ user }) {
+//     const [dataSource, setDataSource] = useState([]);
+//     const [loading, setLoading] = useState(false);
+//     const [month, setMonth] = useState(null);
+//     const [monthOptions, setMonthOptions] = useState([]);
+
+//     // Generate month options up to the current month
+//     const getMonthOptions = (year) => {
+//         const now = new Date("2025-06-07T02:36:00+07:00"); // Updated to current time
+//         const currentYear = now.getFullYear();
+//         const currentMonth = now.getMonth() + 1; // 0-based, so +1
+
+//         if (year !== currentYear) return [];
+//         return Array.from({ length: currentMonth }, (_, i) => ({
+//             value: i + 1,
+//             label: `${i + 1}/${year}`,
+//         }));
+//     };
+
+//     useEffect(() => {
+//         if (!user || !user._id) {
+//             setDataSource([]);
+//             setMonthOptions([]);
+//         } else {
+//             setLoading(true);
+//             fetchAllProductAPI()
+//                 .then((res) => {
+//                     const products = res.data?.result || [];
+//                     const months = getMonthOptions(2025); // Generate months 1-6 for 2025
+//                     setMonthOptions(months);
+
+//                     const now = new Date("2025-06-07T02:36:00+07:00"); // Updated to current time
+//                     const defaultMonth = `${now.getMonth() + 1}/${now.getFullYear()}`;
+//                     setMonth(month || defaultMonth);
+
+//                     // Group products by month and filter by selected month
+//                     const monthlyData = products.reduce((acc, product) => {
+//                         const date = new Date(product.transactionDate || product.createdAt || "2025-05-19");
+//                         const m = date.getMonth() + 1; // 0-based, so +1
+//                         const y = date.getFullYear();
+//                         const monthYear = `${m}/${y}`;
+//                         if (!acc[monthYear]) {
+//                             acc[monthYear] = [];
+//                         }
+//                         acc[monthYear].push({
+//                             ...product,
+//                             key: product._id || `${product.name}-${monthYear}`,
+//                             monthYear,
+//                             sold: product.sold || 0,
+//                         });
+//                         return acc;
+//                     }, {});
+
+//                     // Filter by selected month and get top 5
+//                     const filteredData = month
+//                         ? monthlyData[month]
+//                             ?.sort((a, b) => b.sold - a.sold)
+//                             .slice(0, 5) || []
+//                         : [];
+
+//                     setDataSource(filteredData);
+//                     setLoading(false);
+//                 })
+//                 .catch((err) => {
+//                     setDataSource([]);
+//                     setMonthOptions([]);
+//                     setLoading(false);
+//                     notification.error({
+//                         message: "Error",
+//                         description: "Cannot fetch product data. Please check the API.",
+//                     });
+//                 });
+//         }
+//     }, [user, month]);
+
+//     return (
+//         <>
+//             <Typography.Title level={5}>Sản phẩm bán chạy nhất theo tháng</Typography.Title>
+//             <Select
+//                 value={month}
+//                 onChange={setMonth}
+//                 style={{ width: "200px", marginBottom: "16px" }}
+//                 placeholder="Chọn tháng"
+//             >
+//                 {monthOptions.map((m) => (
+//                     <Select.Option key={m.value} value={m.label}>
+//                         {m.label}
+//                     </Select.Option>
+//                 ))}
+//             </Select>
+//             <Table
+//                 columns={[
+//                     { title: "Tên sản phẩm", dataIndex: "name" },
+//                     { title: "Mã vạch", dataIndex: "barCode" },
+//                     { title: "Số lượng bán", dataIndex: "sold" },
+//                     { title: "Tháng", dataIndex: "monthYear" },
+//                 ]}
+//                 loading={loading}
+//                 dataSource={dataSource}
+//                 pagination={false}
+//                 scroll={{ x: "max-content" }}
+//             />
+//         </>
+//     );
+// }
 
 function DashboardChart({ user }) {
     const [revenueData, setRevenueData] = useState({ labels: [], datasets: [] });
@@ -377,8 +499,8 @@ function DashboardChart({ user }) {
                     });
                 } catch (error) {
                     notification.error({
-                        message: "Lỗi",
-                        description: "Không thể lấy dữ liệu doanh thu. Vui lòng kiểm tra API.",
+                        message: "Error",
+                        description: "Cannot fetch revenue data. Please check the API.",
                     });
                     setRevenueData({ labels: [], datasets: [] });
                 }
@@ -404,14 +526,125 @@ function DashboardChart({ user }) {
                     onChange={setTimePeriod}
                     style={{ width: "200px" }}
                 >
-                    <Select.Option value="day">Theo ngày</Select.Option>
-                    <Select.Option value="week">Theo tuần</Select.Option>
-                    <Select.Option value="month">Theo tháng</Select.Option>
-                    <Select.Option value="year">Theo năm</Select.Option>
+                    <Select.Option value="day">Ngày</Select.Option>
+                    <Select.Option value="week">Tuần</Select.Option>
+                    <Select.Option value="month">Tháng</Select.Option>
+                    <Select.Option value="year">Năm</Select.Option>
                 </Select>
             </div>
             <div className="chart-wrapper">
                 <Bar options={options} data={revenueData} />
+            </div>
+        </Card>
+    );
+}
+
+function NewUsersChart({ user }) {
+    const [newUsersData, setNewUsersData] = useState({ labels: [], datasets: [] });
+    const [usersTimePeriod, setUsersTimePeriod] = useState("day");
+
+    useEffect(() => {
+        if (!user || !user._id) {
+            setNewUsersData({ labels: [], datasets: [] });
+            return;
+        }
+
+        const fetchData = async () => {
+            try {
+                const res = await fetchAppUsersAPI(1, 1000); // Fetch all app users with a large pageSize
+                const users = res.data?.result || [];
+
+                if (!Array.isArray(users) || users.length === 0) {
+                    setNewUsersData({ labels: [], datasets: [] });
+                    return;
+                }
+
+                let labels = [];
+                let data = [];
+
+                const now = new Date("2025-06-07T02:36:00+07:00"); // Updated to current time
+
+                if (usersTimePeriod === "day") {
+                    const dailyData = users.reduce((acc, curr) => {
+                        const createdDate = new Date(curr.createdAt || "2025-05-19").toLocaleDateString('vi-VN');
+                        acc[createdDate] = (acc[createdDate] || 0) + 1;
+                        return acc;
+                    }, {});
+                    labels = Object.keys(dailyData);
+                    data = Object.values(dailyData);
+                } else if (usersTimePeriod === "week") {
+                    const weeklyData = users.reduce((acc, curr) => {
+                        const week = getWeekNumber(curr.createdAt || "2025-05-19");
+                        acc[week] = (acc[week] || 0) + 1;
+                        return acc;
+                    }, {});
+                    labels = Object.keys(weeklyData);
+                    data = Object.values(weeklyData);
+                } else if (usersTimePeriod === "month") {
+                    const monthlyData = users.reduce((acc, curr) => {
+                        const date = new Date(curr.createdAt || "2025-05-19");
+                        const monthYear = `${date.toLocaleString('vi-VN', { month: 'long' })} ${date.getFullYear()}`;
+                        acc[monthYear] = (acc[monthYear] || 0) + 1;
+                        return acc;
+                    }, {});
+                    labels = Object.keys(monthlyData);
+                    data = Object.values(monthlyData);
+                } else if (usersTimePeriod === "year") {
+                    const yearlyData = users.reduce((acc, curr) => {
+                        const year = new Date(curr.createdAt || "2025-05-19").getFullYear();
+                        acc[year] = (acc[year] || 0) + 1;
+                        return acc;
+                    }, {});
+                    labels = Object.keys(yearlyData).map(year => `${year}`);
+                    data = Object.values(yearlyData);
+                }
+
+                setNewUsersData({
+                    labels: labels.sort(),
+                    datasets: [{
+                        label: "Số lượng người dùng mới",
+                        data: data,
+                        backgroundColor: "rgba(75, 192, 192, 0.8)",
+                    }],
+                });
+            } catch (error) {
+                if (error.message && !error.message.includes("404") && !error.message.includes("500")) {
+                    notification.error({
+                        message: "Error",
+                        description: "Cannot fetch user data. Please check the API.",
+                    });
+                }
+                setNewUsersData({ labels: [], datasets: [] });
+            }
+        };
+        fetchData();
+    }, [user, usersTimePeriod]);
+
+    const options = {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: { position: "bottom" },
+            title: { display: true, text: "Số lượng người dùng mới theo thời gian" },
+        },
+    };
+
+    return (
+        <Card className="chart-card">
+            <div style={{ marginBottom: "16px" }}>
+                <Select
+                    value={usersTimePeriod}
+                    onChange={setUsersTimePeriod}
+                    style={{ width: "200px" }}
+                >
+                    <Select.Option value="day">Ngày</Select.Option>
+                    <Select.Option value="week">Tuần</Select.Option>
+                    <Select.Option value="month">Tháng</Select.Option>
+                    <Select.Option value="year">Năm</Select.Option>
+                </Select>
+            </div>
+            <div className="chart-wrapper">
+                <Bar options={options} data={newUsersData} />
             </div>
         </Card>
     );

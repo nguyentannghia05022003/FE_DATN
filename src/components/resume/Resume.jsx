@@ -43,8 +43,8 @@ const Resume = ({
     onRefresh,
 }) => {
     const [isModalVisible, setIsModalVisible] = useState(false);
-    const [detailModalVisible, setDetailModalVisible] = useState(false); // State cho modal chi tiết
-    const [selectedResume, setSelectedResume] = useState(null); // Lưu đơn hàng được chọn để xem chi tiết
+    const [detailModalVisible, setDetailModalVisible] = useState(false);
+    const [selectedResume, setSelectedResume] = useState(null);
     const [sortOrder, setSortOrder] = useState({ field: "createdAt", order: "desc" });
     const [sortedResumes, setSortedResumes] = useState([]);
     const [filteredResumes, setFilteredResumes] = useState([]);
@@ -55,33 +55,9 @@ const Resume = ({
     const [form] = Form.useForm();
 
     useEffect(() => {
-        const resumeList = Array.isArray(resumes) ? resumes : [];
-        if (!selectedDate && !sortOrder.field) {
-            const sortedList = [...resumeList].sort((a, b) => {
-                const dateA = new Date(a.createdAt).getTime();
-                const dateB = new Date(b.createdAt).getTime();
-                return dateB - dateA;
-            });
-            setSortedResumes(sortedList);
-        } else {
-            setSortedResumes(resumeList);
-        }
-    }, [resumes, selectedDate, sortOrder]);
-
-    useEffect(() => {
-        const fullResumeList = Array.isArray(fullResumes) ? [...fullResumes] : [];
-        const sortedFullList = fullResumeList.sort((a, b) => {
-            const dateA = new Date(a.createdAt).getTime();
-            const dateB = new Date(b.createdAt).getTime();
-            return dateB - dateA;
-        });
-        setFilteredResumes(sortedFullList);
-        calculateTotalIncome(sortedFullList);
-    }, [fullResumes]);
-
-    useEffect(() => {
         let resumeList = Array.isArray(fullResumes) ? [...fullResumes] : [];
 
+        // Apply date filter
         if (selectedDate) {
             resumeList = resumeList.filter((resume) => {
                 const resumeDate = dayjs(resume.createdAt);
@@ -102,34 +78,18 @@ const Resume = ({
                 }
                 return isMatch;
             });
-
-            if (resumeList.length === 0) {
-                notification.warning({
-                    message: "Không tìm thấy",
-                    description: `Không có đơn hàng nào trong ${pickerMode === "date"
-                        ? "ngày"
-                        : pickerMode === "week"
-                            ? "tuần"
-                            : pickerMode === "month"
-                                ? "tháng"
-                                : "năm"
-                        } đã chọn.`,
-                });
-            }
         }
 
+        // Apply search filter
         if (searchOrderCode) {
             resumeList = resumeList.filter((resume) =>
-                resume.orderCode?.toLowerCase().includes(searchOrderCode.toLowerCase())
+                resume.orderCode
+                    ? resume.orderCode.toLowerCase().includes(searchOrderCode.toLowerCase())
+                    : false
             );
-            if (resumeList.length === 0) {
-                notification.warning({
-                    message: "Không tìm thấy",
-                    description: `Không có đơn hàng nào khớp với mã đơn hàng "${searchOrderCode}".`,
-                });
-            }
         }
 
+        // Apply sorting
         if (sortOrder.field) {
             resumeList = resumeList.sort((a, b) => {
                 if (sortOrder.field === "createdAt") {
@@ -149,9 +109,11 @@ const Resume = ({
             });
         }
 
+        // Update filteredResumes
         setFilteredResumes(resumeList);
         calculateTotalIncome(resumeList);
 
+        // Apply pagination
         const startIndex = (currentPage - 1) * pageSize;
         const endIndex = startIndex + pageSize;
         const paginatedList = resumeList.slice(startIndex, endIndex);
@@ -217,6 +179,8 @@ const Resume = ({
         setSelectedDate(null);
         setPickerMode("date");
         setSearchOrderCode("");
+        setFilteredResumes([...fullResumes]); // Reset filteredResumes on refresh
+        calculateTotalIncome(fullResumes);
     };
 
     const handlePickerModeChange = (value) => {
@@ -243,7 +207,26 @@ const Resume = ({
     };
 
     const handleSearchOrderCode = (value) => {
-        setSearchOrderCode(value.trim());
+        const trimmedValue = value.trim();
+        setSearchOrderCode(trimmedValue);
+        if (!trimmedValue) {
+            // Reset filteredResumes when search is cleared
+            setFilteredResumes([...fullResumes]);
+            calculateTotalIncome(fullResumes);
+        } else {
+            // Show notification only when search yields no results
+            const filtered = fullResumes.filter((resume) =>
+                resume.orderCode
+                    ? resume.orderCode.toLowerCase().includes(trimmedValue.toLowerCase())
+                    : false
+            );
+            if (filtered.length === 0) {
+                notification.warning({
+                    message: "Không tìm thấy",
+                    description: `Không có đơn hàng nào khớp với mã đơn hàng "${trimmedValue}".`,
+                });
+            }
+        }
     };
 
     const handleDeleteAll = async () => {
@@ -375,20 +358,6 @@ const Resume = ({
                 </Button>
             ),
         },
-        {
-            title: "Hành động",
-            key: "action",
-            render: (record) => (
-                <Button
-                    icon={<DeleteOutlined />}
-                    danger
-                    onClick={() => handleDelete(record._id)}
-                    className="resume-delete-btn"
-                >
-                    Xóa
-                </Button>
-            ),
-        },
     ];
 
     const handleCreate = async () => {
@@ -506,6 +475,11 @@ const Resume = ({
                     allowClear
                     enterButton={<SearchOutlined />}
                     onSearch={handleSearchOrderCode}
+                    onChange={(e) => {
+                        if (!e.target.value.trim()) {
+                            handleSearchOrderCode(""); // Clear search when input is empty
+                        }
+                    }}
                     style={{ width: 200 }}
                     className="resume-search-order"
                 />
@@ -539,7 +513,7 @@ const Resume = ({
             <Pagination
                 current={currentPage}
                 pageSize={pageSize}
-                total={selectedDate ? filteredResumes.length : totalResumes}
+                total={selectedDate || searchOrderCode ? filteredResumes.length : totalResumes}
                 onChange={onPageChange}
                 onShowSizeChange={onPageSizeChange}
                 showSizeChanger

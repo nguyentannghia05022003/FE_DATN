@@ -202,7 +202,6 @@ const AppUser = ({
             render: (text, record, index) =>
                 (currentPage - 1) * pageSize + index + 1,
         },
-        { title: "ID", dataIndex: "_id", key: "_id" },
         { title: "Họ và tên", dataIndex: "fullName", key: "fullName" },
         { title: "Số điện thoại", dataIndex: "phone", key: "phone" },
         { title: "Email", dataIndex: "email", key: "email" },

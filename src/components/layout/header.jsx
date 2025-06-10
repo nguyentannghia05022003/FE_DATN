@@ -85,7 +85,7 @@ const Header = () => {
             icon: <UserOutlined />,
         },
         {
-            label: <Link to='/app'>App User</Link>,
+            label: <Link to='/app'>Customer</Link>,
             key: 'app',
             icon: <TeamOutlined />,
         },
