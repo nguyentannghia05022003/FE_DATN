@@ -5,7 +5,7 @@ import {
     UserOutlined,
 } from "@ant-design/icons";
 import { Card, Space, Statistic, Table, Typography, Select, notification } from "antd";
-import { useEffect, useState, useContext, useCallback } from "react";
+import { useEffect, useState, useContext, useCallback, useRef } from "react";
 import {
     Chart as ChartJS,
     CategoryScale,
@@ -51,6 +51,7 @@ function Home() {
     const [resumeTimePeriod, setResumeTimePeriod] = useState("all");
     const { user } = useContext(AuthContext);
     const [refreshTrigger, setRefreshTrigger] = useState(new Date());
+    const lastDateRef = useRef(new Date().toLocaleDateString('vi-VN')); // Track the last date
 
     // Memoized fetch function to avoid recreating on every render
     const fetchData = useCallback(async () => {
@@ -66,20 +67,20 @@ function Home() {
             const [resumeRes, productRes, appUsersRes] = await Promise.all([
                 fetchResumeListAPI(1, 1000),
                 fetchAllProductAPI(),
-                fetchAppUsersAPI(1, 1000), // Fetch all app users with a large pageSize
+                fetchAppUsersAPI(1, 1000),
             ]);
 
             const resumeList = resumeRes.data?.result || [];
             setResumesCount(resumeRes.data?.meta?.total || 0);
 
             let total = 0;
-            const currentDate = new Date("2025-06-07T02:36:00+07:00"); // Updated to current time
+            const currentDate = new Date(); // Use real-time date
 
             if (resumeTimePeriod === "all") {
                 total = resumeList.reduce((sum, resume) => sum + (resume.totalPrice || 0), 0);
             } else if (resumeTimePeriod === "day") {
                 total = resumeList.reduce((sum, resume) => {
-                    const resumeDate = new Date(resume.transactionDate || resume.createdAt || "2025-05-19").toLocaleDateString('vi-VN');
+                    const resumeDate = new Date(resume.transactionDate || resume.createdAt || new Date()).toLocaleDateString('vi-VN');
                     if (resumeDate === currentDate.toLocaleDateString('vi-VN')) {
                         return sum + (resume.totalPrice || 0);
                     }
@@ -88,7 +89,7 @@ function Home() {
             } else if (resumeTimePeriod === "week") {
                 const currentWeek = getWeekNumber(currentDate);
                 total = resumeList.reduce((sum, resume) => {
-                    const resumeWeek = getWeekNumber(resume.transactionDate || resume.createdAt || "2025-05-19");
+                    const resumeWeek = getWeekNumber(resume.transactionDate || resume.createdAt || new Date());
                     if (resumeWeek === currentWeek) {
                         return sum + (resume.totalPrice || 0);
                     }
@@ -96,7 +97,7 @@ function Home() {
                 }, 0);
             } else if (resumeTimePeriod === "month") {
                 total = resumeList.reduce((sum, resume) => {
-                    const resumeDate = new Date(resume.transactionDate || resume.createdAt || "2025-05-19");
+                    const resumeDate = new Date(resume.transactionDate || resume.createdAt || new Date());
                     const resumeMonthYear = `${resumeDate.toLocaleString('vi-VN', { month: 'long' })} ${resumeDate.getFullYear()}`;
                     const currentMonthYear = `${currentDate.toLocaleString('vi-VN', { month: 'long' })} ${currentDate.getFullYear()}`;
                     if (resumeMonthYear === currentMonthYear) {
@@ -106,7 +107,7 @@ function Home() {
                 }, 0);
             } else if (resumeTimePeriod === "year") {
                 total = resumeList.reduce((sum, resume) => {
-                    const resumeYear = new Date(resume.transactionDate || resume.createdAt || "2025-05-19").getFullYear();
+                    const resumeYear = new Date(resume.transactionDate || resume.createdAt || new Date()).getFullYear();
                     if (resumeYear === currentDate.getFullYear()) {
                         return sum + (resume.totalPrice || 0);
                     }
@@ -114,7 +115,6 @@ function Home() {
                 }, 0);
             }
             setTotalResumePrice(total);
-
             setInventory(productRes.data?.meta?.total || 0);
             setCustomers(appUsersRes.data?.meta?.total || 0);
         } catch (error) {
@@ -129,14 +129,26 @@ function Home() {
         }
     }, [user, resumeTimePeriod, refreshTrigger]);
 
+    // Fetch data initially and on refresh
     useEffect(() => {
         fetchData();
     }, [fetchData]);
 
-    // Optional: Add a manual refresh button if needed
-    const handleRefresh = () => {
-        setRefreshTrigger(new Date()); // Update trigger to force re-fetch
-    };
+    // Check for date change and trigger refresh
+    useEffect(() => {
+        const checkDateChange = () => {
+            const currentDate = new Date();
+            const currentDateStr = currentDate.toLocaleDateString('vi-VN');
+            if (currentDateStr !== lastDateRef.current) {
+                lastDateRef.current = currentDateStr;
+                setRefreshTrigger(new Date()); // Trigger refresh on date change
+            }
+        };
+
+        // Check every minute for a date change
+        const interval = setInterval(checkDateChange, 60 * 1000); // Check every 60 seconds
+        return () => clearInterval(interval); // Cleanup on unmount
+    }, []);
 
     return (
         <div className="dashboard-container">
@@ -175,10 +187,6 @@ function Home() {
                             value={totalResumePrice}
                         />
                     </div>
-                    {/* Optional refresh button */}
-                    {/* <Button onClick={handleRefresh} style={{ marginTop: "10px" }}>
-                        Làm mới
-                    </Button> */}
                 </div>
 
                 <div className="dashboard-content">
@@ -194,9 +202,6 @@ function Home() {
                         <div className="recent-orders">
                             <ExpiringProducts user={user} />
                         </div>
-                        {/* <div className="recent-orders">
-                            <TopProducts user={user} />
-                        </div> */}
                     </div>
                 </div>
             </div>
@@ -226,7 +231,7 @@ function ExpiringProducts({ user }) {
             setLoading(true);
             fetchAllProductAPI().then((res) => {
                 const products = res.data?.result || [];
-                const currentDate = new Date("2025-06-07T02:36:00+07:00"); // Updated to current time
+                const currentDate = new Date(); // Use real-time date
                 const thresholdDate = new Date(currentDate);
                 thresholdDate.setDate(currentDate.getDate() + 7);
 
@@ -275,111 +280,110 @@ function ExpiringProducts({ user }) {
     );
 }
 
-// function TopProducts({ user }) {
-//     const [dataSource, setDataSource] = useState([]);
-//     const [loading, setLoading] = useState(false);
-//     const [month, setMonth] = useState(null);
-//     const [monthOptions, setMonthOptions] = useState([]);
+function TopProducts({ user }) {
+    const [dataSource, setDataSource] = useState([]);
+    const [loading, setLoading] = useState(false);
+    const [month, setMonth] = useState(null);
+    const [monthOptions, setMonthOptions] = useState([]);
 
-//     // Generate month options up to the current month
-//     const getMonthOptions = (year) => {
-//         const now = new Date("2025-06-07T02:36:00+07:00"); // Updated to current time
-//         const currentYear = now.getFullYear();
-//         const currentMonth = now.getMonth() + 1; // 0-based, so +1
+    // Generate month options up to the current month
+    const getMonthOptions = () => {
+        const now = new Date(); // Use real-time date
+        const currentYear = now.getFullYear();
+        const currentMonth = now.getMonth() + 1; // 0-based, so +1
 
-//         if (year !== currentYear) return [];
-//         return Array.from({ length: currentMonth }, (_, i) => ({
-//             value: i + 1,
-//             label: `${i + 1}/${year}`,
-//         }));
-//     };
+        return Array.from({ length: currentMonth }, (_, i) => ({
+            value: i + 1,
+            label: `${i + 1}/${currentYear}`,
+        }));
+    };
 
-//     useEffect(() => {
-//         if (!user || !user._id) {
-//             setDataSource([]);
-//             setMonthOptions([]);
-//         } else {
-//             setLoading(true);
-//             fetchAllProductAPI()
-//                 .then((res) => {
-//                     const products = res.data?.result || [];
-//                     const months = getMonthOptions(2025); // Generate months 1-6 for 2025
-//                     setMonthOptions(months);
+    useEffect(() => {
+        if (!user || !user._id) {
+            setDataSource([]);
+            setMonthOptions([]);
+        } else {
+            setLoading(true);
+            fetchAllProductAPI()
+                .then((res) => {
+                    const products = res.data?.result || [];
+                    const months = getMonthOptions();
+                    setMonthOptions(months);
 
-//                     const now = new Date("2025-06-07T02:36:00+07:00"); // Updated to current time
-//                     const defaultMonth = `${now.getMonth() + 1}/${now.getFullYear()}`;
-//                     setMonth(month || defaultMonth);
+                    const now = new Date(); // Use real-time date
+                    const defaultMonth = `${now.getMonth() + 1}/${now.getFullYear()}`;
+                    setMonth(month || defaultMonth);
 
-//                     // Group products by month and filter by selected month
-//                     const monthlyData = products.reduce((acc, product) => {
-//                         const date = new Date(product.transactionDate || product.createdAt || "2025-05-19");
-//                         const m = date.getMonth() + 1; // 0-based, so +1
-//                         const y = date.getFullYear();
-//                         const monthYear = `${m}/${y}`;
-//                         if (!acc[monthYear]) {
-//                             acc[monthYear] = [];
-//                         }
-//                         acc[monthYear].push({
-//                             ...product,
-//                             key: product._id || `${product.name}-${monthYear}`,
-//                             monthYear,
-//                             sold: product.sold || 0,
-//                         });
-//                         return acc;
-//                     }, {});
+                    // Group products by month and filter by selected month
+                    const monthlyData = products.reduce((acc, product) => {
+                        const date = new Date(product.transactionDate || product.createdAt || new Date());
+                        const m = date.getMonth() + 1; // 0-based, so +1
+                        const y = date.getFullYear();
+                        const monthYear = `${m}/${y}`;
+                        if (!acc[monthYear]) {
+                            acc[monthYear] = [];
+                        }
+                        acc[monthYear].push({
+                            ...product,
+                            key: product._id || `${product.name}-${monthYear}`,
+                            monthYear,
+                            sold: product.sold || 0,
+                        });
+                        return acc;
+                    }, {});
 
-//                     // Filter by selected month and get top 5
-//                     const filteredData = month
-//                         ? monthlyData[month]
-//                             ?.sort((a, b) => b.sold - a.sold)
-//                             .slice(0, 5) || []
-//                         : [];
+                    // Filter by selected month and get top 5
+                    const filteredData = month
+                        ? monthlyData[month]
+                            ?.sort((a, b) => b.sold - a.sold)
+                            .slice(0, 5) || []
+                        : [];
 
-//                     setDataSource(filteredData);
-//                     setLoading(false);
-//                 })
-//                 .catch((err) => {
-//                     setDataSource([]);
-//                     setMonthOptions([]);
-//                     setLoading(false);
-//                     notification.error({
-//                         message: "Error",
-//                         description: "Cannot fetch product data. Please check the API.",
-//                     });
-//                 });
-//         }
-//     }, [user, month]);
+                    setDataSource(filteredData);
+                    setLoading(false);
+                })
+                .catch((err) => {
+                    setDataSource([]);
+                    setMonthOptions([]);
+                    setLoading(false);
+                    notification.error({
+                        message: "Error",
+                        description: "Cannot fetch product data. Please check the API.",
+                    });
+                });
+        }
+    }, [user, month]);
 
-//     return (
-//         <>
-//             <Typography.Title level={5}>Sản phẩm bán chạy nhất theo tháng</Typography.Title>
-//             <Select
-//                 value={month}
-//                 onChange={setMonth}
-//                 style={{ width: "200px", marginBottom: "16px" }}
-//                 placeholder="Chọn tháng"
-//             >
-//                 {monthOptions.map((m) => (
-//                     <Select.Option key={m.value} value={m.label}>
-//                         {m.label}
-//                     </Select.Option>
-//                 ))}
-//             </Select>
-//             <Table
-//                 columns={[
-//                     { title: "Tên sản phẩm", dataIndex: "name" },
-//                     { title: "Mã vạch", dataIndex: "barCode" },
-//                     { title: "Số lượng bán", dataIndex: "sold" },
-//                     { title: "Tháng", dataIndex: "monthYear" },
-//                 ]}
-//                 loading={loading}
-//                 dataSource={dataSource}
-//                 pagination={false}
-//                 scroll={{ x: "max-content" }}
-//             />
-//         </>
-//     );
-// }
+    return (
+        <>
+            <Typography.Title level={5}>Sản phẩm bán chạy nhất theo tháng</Typography.Title>
+            <Select
+                value={month}
+                onChange={setMonth}
+                style={{ width: "200px", marginBottom: "16px" }}
+                placeholder="Chọn tháng"
+            >
+                {monthOptions.map((m) => (
+                    <Select.Option key={m.value} value={m.label}>
+                        {m.label}
+                    </Select.Option>
+                ))}
+            </Select>
+            <Table
+                columns={[
+                    { title: "Tên sản phẩm", dataIndex: "name" },
+                    { title: "Mã vạch", dataIndex: "barCode" },
+                    { title: "Số lượng bán", dataIndex: "sold" },
+                    { title: "Tháng", dataIndex: "monthYear" },
+                ]}
+                loading={loading}
+                dataSource={dataSource}
+                pagination={false}
+                scroll={{ x: "max-content" }}
+            />
+        </>
+    );
+}
 
 function DashboardChart({ user }) {
     const [revenueData, setRevenueData] = useState({ labels: [], datasets: [] });
@@ -415,7 +419,7 @@ function DashboardChart({ user }) {
                         bankingData = Object.values(bankingDailyData);
 
                         const resumeDailyData = resumeList.reduce((acc, curr) => {
-                            const date = new Date(curr.transactionDate || curr.createdAt || "2025-05-19").toLocaleDateString('vi-VN');
+                            const date = new Date(curr.transactionDate || curr.createdAt || new Date()).toLocaleDateString('vi-VN');
                             const revenue = curr.totalPrice || 0;
                             acc[date] = (acc[date] || 0) + revenue;
                             return acc;
@@ -433,7 +437,7 @@ function DashboardChart({ user }) {
                         bankingData = Object.values(bankingWeeklyData);
 
                         const resumeWeeklyData = resumeList.reduce((acc, curr) => {
-                            const week = getWeekNumber(curr.transactionDate || curr.createdAt || "2025-05-19");
+                            const week = getWeekNumber(curr.transactionDate || curr.createdAt || new Date());
                             const revenue = curr.totalPrice || 0;
                             acc[week] = (acc[week] || 0) + revenue;
                             return acc;
@@ -452,7 +456,7 @@ function DashboardChart({ user }) {
                         bankingData = Object.values(bankingMonthlyData);
 
                         const resumeMonthlyData = resumeList.reduce((acc, curr) => {
-                            const date = new Date(curr.transactionDate || curr.createdAt || "2025-05-19");
+                            const date = new Date(curr.transactionDate || curr.createdAt || new Date());
                             const monthYear = `${date.toLocaleString('vi-VN', { month: 'long' })} ${date.getFullYear()}`;
                             const revenue = curr.totalPrice || 0;
                             acc[monthYear] = (acc[monthYear] || 0) + revenue;
@@ -471,7 +475,7 @@ function DashboardChart({ user }) {
                         bankingData = Object.values(bankingYearlyData);
 
                         const resumeYearlyData = resumeList.reduce((acc, curr) => {
-                            const year = new Date(curr.transactionDate || curr.createdAt || "2025-05-19").getFullYear();
+                            const year = new Date(curr.transactionDate || curr.createdAt || new Date()).getFullYear();
                             const revenue = curr.totalPrice || 0;
                             acc[year] = (acc[year] || 0) + revenue;
                             return acc;
@@ -551,7 +555,7 @@ function NewUsersChart({ user }) {
 
         const fetchData = async () => {
             try {
-                const res = await fetchAppUsersAPI(1, 1000); // Fetch all app users with a large pageSize
+                const res = await fetchAppUsersAPI(1, 1000);
                 const users = res.data?.result || [];
 
                 if (!Array.isArray(users) || users.length === 0) {
@@ -562,11 +566,11 @@ function NewUsersChart({ user }) {
                 let labels = [];
                 let data = [];
 
-                const now = new Date("2025-06-07T02:36:00+07:00"); // Updated to current time
+                const now = new Date(); // Use real-time date
 
                 if (usersTimePeriod === "day") {
                     const dailyData = users.reduce((acc, curr) => {
-                        const createdDate = new Date(curr.createdAt || "2025-05-19").toLocaleDateString('vi-VN');
+                        const createdDate = new Date(curr.createdAt || new Date()).toLocaleDateString('vi-VN');
                         acc[createdDate] = (acc[createdDate] || 0) + 1;
                         return acc;
                     }, {});
@@ -574,7 +578,7 @@ function NewUsersChart({ user }) {
                     data = Object.values(dailyData);
                 } else if (usersTimePeriod === "week") {
                     const weeklyData = users.reduce((acc, curr) => {
-                        const week = getWeekNumber(curr.createdAt || "2025-05-19");
+                        const week = getWeekNumber(curr.createdAt || new Date());
                         acc[week] = (acc[week] || 0) + 1;
                         return acc;
                     }, {});
@@ -582,7 +586,7 @@ function NewUsersChart({ user }) {
                     data = Object.values(weeklyData);
                 } else if (usersTimePeriod === "month") {
                     const monthlyData = users.reduce((acc, curr) => {
-                        const date = new Date(curr.createdAt || "2025-05-19");
+                        const date = new Date(curr.createdAt || new Date());
                         const monthYear = `${date.toLocaleString('vi-VN', { month: 'long' })} ${date.getFullYear()}`;
                         acc[monthYear] = (acc[monthYear] || 0) + 1;
                         return acc;
@@ -591,7 +595,7 @@ function NewUsersChart({ user }) {
                     data = Object.values(monthlyData);
                 } else if (usersTimePeriod === "year") {
                     const yearlyData = users.reduce((acc, curr) => {
-                        const year = new Date(curr.createdAt || "2025-05-19").getFullYear();
+                        const year = new Date(curr.createdAt || new Date()).getFullYear();
                         acc[year] = (acc[year] || 0) + 1;
                         return acc;
                     }, {});
