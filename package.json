@@ -21,6 +21,7 @@
     "antd": "5.18.1",
     "axios": "1.7.2",
     "chart.js": "^4.4.8",
+    "chartjs-plugin-zoom": "^2.2.0",
     "dayjs": "^1.11.13",
     "file-saver": "^2.0.5",
     "moment": "^2.30.1",

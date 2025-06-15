@@ -14,8 +14,10 @@ import {
     Title,
     Tooltip,
     Legend,
+    plugins,
 } from "chart.js";
 import { Bar } from "react-chartjs-2";
+import zoomPlugin from 'chartjs-plugin-zoom';
 import { fetchAllUserAPI } from "../../services/api.service";
 import { fetchAllProductAPI } from "../../services/api.product";
 import { fetchResumeListAPI } from "../../services/api.resume";
@@ -30,7 +32,8 @@ ChartJS.register(
     BarElement,
     Title,
     Tooltip,
-    Legend
+    Legend,
+    zoomPlugin
 );
 
 // Hàm tính số tuần trong năm
@@ -484,7 +487,33 @@ function DashboardChart({ user }) {
                         resumeData = Object.values(resumeYearlyData);
                     }
 
-                    const allLabels = [...new Set([...bankingLabels, ...resumeLabels])].sort();
+                    const allLabels = [...new Set([...bankingLabels, ...resumeLabels])].sort((a, b) => {
+                        if (timePeriod === "day") {
+                            const [dayA, monthA, yearA] = a.split('/').map(Number);
+                            const [dayB, monthB, yearB] = b.split('/').map(Number);
+                            return new Date(yearA, monthA - 1, dayA) - new Date(yearB, monthB - 1, dayB);
+                        } else if (timePeriod === "week") {
+                            const [yearA, weekA] = a.split('-W').map(Number);
+                            const [yearB, weekB] = b.split('-W').map(Number);
+                            if (yearA !== yearB) return yearA - yearB;
+                            return weekA - weekB;
+                        } else if (timePeriod === "month") {
+                            const monthMap = {
+                                'Tháng Một': 1, 'Tháng Hai': 2, 'Tháng Ba': 3, 'Tháng Tư': 4,
+                                'Tháng Năm': 5, 'Tháng Sáu': 6, 'Tháng Bảy': 7, 'Tháng Tám': 8,
+                                'Tháng Chín': 9, 'Tháng Mười': 10, 'Tháng Mười Một': 11, 'Tháng Mười Hai': 12
+                            };
+                            const [monthStrA, yearA] = a.split(' ');
+                            const [monthStrB, yearB] = b.split(' ');
+                            const monthA = monthMap[monthStrA];
+                            const monthB = monthMap[monthStrB];
+                            if (yearA !== yearB) return yearA - yearB;
+                            return monthA - monthB;
+                        } else if (timePeriod === "year") {
+                            return Number(a) - Number(b);
+                        }
+                        return 0;
+                    });
 
                     setRevenueData({
                         labels: allLabels,
@@ -519,6 +548,21 @@ function DashboardChart({ user }) {
         plugins: {
             legend: { position: "bottom" },
             title: { display: true, text: "Doanh thu Banking và Resumes theo thời gian" },
+            zoom: {
+                pan: {
+                    enabled: true,
+                    mode: "xy",
+                },
+                zoom: {
+                    wheel: {
+                        enabled: true,
+                    },
+                    pinch: {
+                        enabled: true,
+                    },
+                    mode: "xy",
+                },
+            },
         },
     };
 
@@ -566,7 +610,7 @@ function NewUsersChart({ user }) {
                 let labels = [];
                 let data = [];
 
-                const now = new Date(); // Use real-time date
+                const now = new Date();
 
                 if (usersTimePeriod === "day") {
                     const dailyData = users.reduce((acc, curr) => {
@@ -603,8 +647,36 @@ function NewUsersChart({ user }) {
                     data = Object.values(yearlyData);
                 }
 
+                labels = labels.sort((a, b) => {
+                    if (usersTimePeriod === "day") {
+                        const [dayA, monthA, yearA] = a.split('/').map(Number);
+                        const [dayB, monthB, yearB] = b.split('/').map(Number);
+                        return new Date(yearA, monthA - 1, dayA) - new Date(yearB, monthB - 1, dayB);
+                    } else if (usersTimePeriod === "week") {
+                        const [yearA, weekA] = a.split('-W').map(Number);
+                        const [yearB, weekB] = b.split('-W').map(Number);
+                        if (yearA !== yearB) return yearA - yearB;
+                        return weekA - weekB;
+                    } else if (usersTimePeriod === "month") {
+                        const monthMap = {
+                            'Tháng Một': 1, 'Tháng Hai': 2, 'Tháng Ba': 3, 'Tháng Tư': 4,
+                            'Tháng Năm': 5, 'Tháng Sáu': 6, 'Tháng Bảy': 7, 'Tháng Tám': 8,
+                            'Tháng Chín': 9, 'Tháng Mười': 10, 'Tháng Mười Một': 11, 'Tháng Mười Hai': 12
+                        };
+                        const [monthStrA, yearA] = a.split(' ');
+                        const [monthStrB, yearB] = b.split(' ');
+                        const monthA = monthMap[monthStrA];
+                        const monthB = monthMap[monthStrB];
+                        if (yearA !== yearB) return yearA - yearB;
+                        return monthA - monthB;
+                    } else if (usersTimePeriod === "year") {
+                        return Number(a) - Number(b);
+                    }
+                    return 0;
+                });
+
                 setNewUsersData({
-                    labels: labels.sort(),
+                    labels: labels,
                     datasets: [{
                         label: "Số lượng người dùng mới",
                         data: data,
@@ -630,6 +702,21 @@ function NewUsersChart({ user }) {
         plugins: {
             legend: { position: "bottom" },
             title: { display: true, text: "Số lượng người dùng mới theo thời gian" },
+            zoom: {
+                pan: {
+                    enabled: true,
+                    mode: "xy",
+                },
+                zoom: {
+                    wheel: {
+                        enabled: true,
+                    },
+                    pinch: {
+                        enabled: true,
+                    },
+                    mode: "xy",
+                },
+            },
         },
     };
 
